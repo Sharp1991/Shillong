@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Neighborhood Map</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    #map { height: 90vh; }
+  </style>
+</head>
+<body>
+  <div class="container text-center mt-3">
+    <h2>Neighborhood Issues Map</h2>
+    <a href="index.html" class="btn btn-secondary">🏠 Home</a>
+  </div>
+  <div id="map"></div>
+
+  <script>
+    // Initialize map
+    var map = L.map('map').setView([25.5788, 91.8933], 13); // Default Shillong coords (you can change)
+
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Example problem markers
+    var marker1 = L.marker([25.5788, 91.8933]).addTo(map)
+      .bindPopup("<b>Pothole</b><br>Reported 2 days ago.<br>Status: 🔴 Unresolved");
+
+    var marker2 = L.marker([25.5825, 91.8912]).addTo(map)
+      .bindPopup("<b>Streetlight Broken</b><br>Reported yesterday.<br>Status: 🟡 In Progress");
+  </script>
+</body>
+</html>
