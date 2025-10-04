@@ -2,36 +2,115 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Neighborhood Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixMyCity - Map</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <style>
-    #map { height: 90vh; }
-  </style>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <div class="container text-center mt-3">
-    <h2>Neighborhood Issues Map</h2>
-    <a href="index.html" class="btn btn-secondary">🏠 Home</a>
-  </div>
-  <div id="map"></div>
 
-  <script>
-    // Initialize map
-    var map = L.map('map').setView([25.5788, 91.8933], 13); // Default Shillong coords (you can change)
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="index.html">FixMyCity</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="report.html">Report</a></li>
+          <li class="nav-item"><a class="nav-link active" href="map.html">Map</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-    // Add tile layer
+  <!-- Map Section -->
+  <section class="py-5">
+    <div class="container-fluid">
+      <h2 class="mb-4 text-center fw-bold">Neighborhood Issues Map</h2>
+      <div id="map" style="height: 600px;"></div>
+    </div>
+  </section>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, GeoPoint } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    // ====== CHANGE THIS ======
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    // ==========================
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const reportsCol = collection(db, "reports");
+
+    // Initialize Map
+    const map = L.map('map').setView([25.5788, 91.8933], 13); // Shillong
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Example problem markers
-    var marker1 = L.marker([25.5788, 91.8933]).addTo(map)
-      .bindPopup("<b>Pothole</b><br>Reported 2 days ago.<br>Status: 🔴 Unresolved");
+    // Store markers to remove old ones on update
+    let markers = [];
 
-    var marker2 = L.marker([25.5825, 91.8912]).addTo(map)
-      .bindPopup("<b>Streetlight Broken</b><br>Reported yesterday.<br>Status: 🟡 In Progress");
+    function clearMarkers() {
+      markers.forEach(marker => map.removeLayer(marker));
+      markers = [];
+    }
+
+    function addMarker(report) {
+      const loc = report.location;
+      const latlng = [loc.latitude, loc.longitude];
+
+      let color;
+      switch(report.status){
+        case "Fixed": color = "green"; break;
+        case "In Progress": color = "orange"; break;
+        default: color = "red"; break;
+      }
+
+      const marker = L.circleMarker(latlng, {
+        color: color,
+        radius: 10,
+        fillOpacity: 0.8
+      }).addTo(map);
+
+      let popupContent = `<strong>${report.title}</strong><br>
+                          <em>${report.category}</em><br>
+                          ${report.description}<br>
+                          <strong>Status:</strong> ${report.status}`;
+      if(report.photoURL){
+        popupContent += `<br><img src="${report.photoURL}" style="width:150px;margin-top:5px;">`;
+      }
+
+      marker.bindPopup(popupContent);
+      markers.push(marker);
+    }
+
+    // Real-time listener
+    onSnapshot(reportsCol, snapshot => {
+      clearMarkers();
+      snapshot.forEach(doc => addMarker(doc.data()));
+    });
   </script>
+
 </body>
 </html>
