@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fix My City</title>
+
+  <!-- Main CSS -->
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -13,21 +17,25 @@
   />
 </head>
 <body>
+
+  <!-- HEADER -->
   <header>
     <h1>Fix My City</h1>
     <nav>
-      <a href="#map">Map</a>
+      <a href="#mapSection">Map</a>
       <a href="#report">Report Issue</a>
       <a href="#stats">Statistics</a>
       <a href="#about">About</a>
     </nav>
   </header>
 
+  <!-- HERO SECTION -->
   <section id="hero">
     <h2>Together, let’s make our city better</h2>
     <p>Report problems in your neighborhood — we’ll map, track & fix them.</p>
   </section>
 
+  <!-- STATISTICS SECTION -->
   <section id="stats">
     <h2>City Statistics</h2>
     <div class="stat-grid">
@@ -46,6 +54,7 @@
     </div>
   </section>
 
+  <!-- MAP SECTION -->
   <section id="mapSection">
     <h2>City Map</h2>
     <div id="map"></div>
@@ -59,6 +68,7 @@
     </div>
   </section>
 
+  <!-- REPORT FORM SECTION -->
   <section id="report">
     <h2>Report an Issue</h2>
     <form id="reportForm">
@@ -81,11 +91,13 @@
     </form>
   </section>
 
+  <!-- RECENT REPORTS SECTION -->
   <section id="recent">
     <h2>Recent Reports</h2>
     <div id="reportList"></div>
   </section>
 
+  <!-- ABOUT SECTION -->
   <section id="about">
     <h2>About Fix My City</h2>
     <p>
@@ -94,15 +106,19 @@
     </p>
   </section>
 
+  <!-- FOOTER -->
   <footer>
     <p>© 2025 Fix My City | Built with Leaflet & Firebase</p>
   </footer>
 
+  <!-- LEAFLET JS -->
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-o9N1j8MkF2E1zFEpZDY4ZcX5ZT0xE0pjo7l3RZp6rxU="
     crossorigin=""
   ></script>
+
+  <!-- MAIN JS -->
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
