@@ -4,11 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fix My City</title>
+
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Google Fonts (Roboto) -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
+<!-- Navbar -->
 <nav>
   <div class="logo">Fix My City</div>
   <ul class="nav-links">
@@ -20,6 +28,7 @@
   </ul>
 </nav>
 
+<!-- Hero Section -->
 <header id="home">
   <div class="hero-content">
     <h1>Welcome to Fix My City</h1>
@@ -27,6 +36,7 @@
   </div>
 </header>
 
+<!-- Stats Section -->
 <section class="stats">
   <div class="stat-card">
     <h3>Total Reports</h3>
@@ -42,7 +52,10 @@
   </div>
 </section>
 
+<!-- Main Sections -->
 <main>
+
+  <!-- Report Form -->
   <section class="form-card" id="report">
     <h2>Submit a Report</h2>
     <form id="reportForm">
@@ -54,23 +67,31 @@
     </form>
   </section>
 
+  <!-- Map Section -->
   <section class="map-card">
     <h2>Issue Map</h2>
     <div id="map"></div>
   </section>
 
+  <!-- Recent Issues -->
   <section class="recent-card" id="recent">
     <h2>Recent Issues</h2>
     <ul id="recentList" class="recent-list"></ul>
   </section>
 
+  <!-- About Us -->
   <section class="about-card" id="about">
     <h2>About Us</h2>
-    <p>Fix My City is a platform dedicated to helping citizens report and track neighborhood issues. Our mission is to empower communities and ensure accountability in city maintenance. Users can submit issues, track the status, and contribute to a cleaner, safer city.</p>
+    <p>
+      Fix My City is a platform dedicated to helping citizens report and track neighborhood issues. 
+      Our mission is to empower communities and ensure accountability in city maintenance. 
+      Users can submit issues, track the status, and contribute to a cleaner, safer city.
+    </p>
   </section>
+
 </main>
 
-<!-- Firebase & Main JS -->
+<!-- Firebase & JS -->
 <script type="module" src="js/main.js"></script>
 
 <!-- Google Maps API -->
