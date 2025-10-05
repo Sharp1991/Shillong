@@ -4,78 +4,77 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fix My City</title>
+  <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; }
-    header { background: #2c3e50; color: white; padding: 1rem; text-align:center; }
-    main { padding: 2rem; }
-    input, textarea, button { display:block; margin:0.5rem 0; width:100%; padding:0.5rem; }
-    button { background:#27ae60; color:white; border:none; cursor:pointer; }
-    button:hover { background:#2ecc71; }
-  </style>
 </head>
 <body>
 
-<header>
-  <h1>Fix My City</h1>
-  <p>Report neighborhood issues quickly and safely</p>
+<nav>
+  <div class="logo">Fix My City</div>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#about">About Us</a></li>
+    <li><a href="#report">Submit Report</a></li>
+    <li><a href="#recent">Recent Issues</a></li>
+    <li><a href="#login" id="loginBtn">Login</a></li>
+  </ul>
+</nav>
+
+<header id="home">
+  <div class="hero-content">
+    <h1>Welcome to Fix My City</h1>
+    <p>Report neighborhood issues, track progress, and make your city better</p>
+  </div>
 </header>
 
+<section class="stats">
+  <div class="stat-card">
+    <h3>Total Reports</h3>
+    <p id="totalReports">0</p>
+  </div>
+  <div class="stat-card">
+    <h3>Fixed</h3>
+    <p id="fixedReports">0</p>
+  </div>
+  <div class="stat-card">
+    <h3>Pending</h3>
+    <p id="pendingReports">0</p>
+  </div>
+</section>
+
 <main>
-  <h2>Submit a Report</h2>
-  <form id="reportForm">
-    <input type="text" id="name" placeholder="Your Name" required>
-    <input type="text" id="location" placeholder="Location / Area" required>
-    <textarea id="description" placeholder="Describe the issue" required></textarea>
-    <button type="submit">Submit Report</button>
-  </form>
+  <section class="form-card" id="report">
+    <h2>Submit a Report</h2>
+    <form id="reportForm">
+      <input type="text" id="name" placeholder="Your Name" required>
+      <input type="text" id="phone" placeholder="Mobile Number" required>
+      <input type="text" id="location" placeholder="Location / Area" required>
+      <textarea id="description" placeholder="Describe the issue" rows="5" required></textarea>
+      <button type="submit"><i class="fa fa-paper-plane"></i> Submit Report</button>
+    </form>
+  </section>
+
+  <section class="map-card">
+    <h2>Issue Map</h2>
+    <div id="map"></div>
+  </section>
+
+  <section class="recent-card" id="recent">
+    <h2>Recent Issues</h2>
+    <ul id="recentList" class="recent-list"></ul>
+  </section>
+
+  <section class="about-card" id="about">
+    <h2>About Us</h2>
+    <p>Fix My City is a platform dedicated to helping citizens report and track neighborhood issues. Our mission is to empower communities and ensure accountability in city maintenance. Users can submit issues, track the status, and contribute to a cleaner, safer city.</p>
+  </section>
 </main>
 
-<script type="module">
-  // Firebase imports
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+<!-- Firebase & Main JS -->
+<script type="module" src="js/main.js"></script>
 
-  // Your new restricted Firebase API key
-  const firebaseConfig = {
-    apiKey: "YOUR_NEW_RESTRICTED_API_KEY",
-    authDomain: "shillong-c1f6b.firebaseapp.com",
-    projectId: "shillong-c1f6b",
-    storageBucket: "shillong-c1f6b.appspot.com",
-    messagingSenderId: "83909239419",
-    appId: "1:83909239419:web:8e7a3baf38e27a685af8de",
-    measurementId: "G-ZVXNXLR0KN"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const db = getFirestore(app);
-
-  // Handle form submission
-  const form = document.getElementById('reportForm');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('name').value;
-    const location = document.getElementById('location').value;
-    const description = document.getElementById('description').value;
-
-    try {
-      await addDoc(collection(db, "reports"), {
-        name,
-        location,
-        description,
-        timestamp: new Date()
-      });
-      alert("Report submitted successfully!");
-      form.reset();
-    } catch (err) {
-      console.error("Error adding document: ", err);
-      alert("Failed to submit report. Please try again.");
-    }
-  });
-</script>
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
 
 </body>
 </html>
