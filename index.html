@@ -1,101 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fix My City</title>
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- Google Fonts (Roboto) -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+e2JbE8H1K7sSMvUbsVbV6GkYt8glXw82jv+T2P5Y="
+    crossorigin=""
+  />
 </head>
 <body>
+  <header>
+    <h1>Fix My City</h1>
+    <nav>
+      <a href="#map">Map</a>
+      <a href="#report">Report Issue</a>
+      <a href="#stats">Statistics</a>
+      <a href="#about">About</a>
+    </nav>
+  </header>
 
-<!-- Navbar -->
-<nav>
-  <div class="logo">Fix My City</div>
-  <ul class="nav-links">
-    <li><a href="#home">Home</a></li>
-    <li><a href="#about">About Us</a></li>
-    <li><a href="#report">Submit Report</a></li>
-    <li><a href="#recent">Recent Issues</a></li>
-    <li><a href="#login" id="loginBtn">Login</a></li>
-  </ul>
-</nav>
+  <section id="hero">
+    <h2>Together, let’s make our city better</h2>
+    <p>Report problems in your neighborhood — we’ll map, track & fix them.</p>
+  </section>
 
-<!-- Hero Section -->
-<header id="home">
-  <div class="hero-content">
-    <h1>Welcome to Fix My City</h1>
-    <p>Report neighborhood issues, track progress, and make your city better</p>
-  </div>
-</header>
+  <section id="stats">
+    <h2>City Statistics</h2>
+    <div class="stat-grid">
+      <div class="stat-box">
+        <h3 id="totalReports">0</h3>
+        <p>Total Reports</p>
+      </div>
+      <div class="stat-box">
+        <h3 id="pendingReports">0</h3>
+        <p>Pending</p>
+      </div>
+      <div class="stat-box">
+        <h3 id="fixedReports">0</h3>
+        <p>Fixed</p>
+      </div>
+    </div>
+  </section>
 
-<!-- Stats Section -->
-<section class="stats">
-  <div class="stat-card">
-    <h3>Total Reports</h3>
-    <p id="totalReports">0</p>
-  </div>
-  <div class="stat-card">
-    <h3>Fixed</h3>
-    <p id="fixedReports">0</p>
-  </div>
-  <div class="stat-card">
-    <h3>Pending</h3>
-    <p id="pendingReports">0</p>
-  </div>
-</section>
+  <section id="mapSection">
+    <h2>City Map</h2>
+    <div id="map"></div>
+    <div id="filter">
+      <label for="statusFilter">Filter by Status:</label>
+      <select id="statusFilter">
+        <option value="all">All</option>
+        <option value="pending">Pending</option>
+        <option value="fixed">Fixed</option>
+      </select>
+    </div>
+  </section>
 
-<!-- Main Sections -->
-<main>
-
-  <!-- Report Form -->
-  <section class="form-card" id="report">
-    <h2>Submit a Report</h2>
+  <section id="report">
+    <h2>Report an Issue</h2>
     <form id="reportForm">
-      <input type="text" id="name" placeholder="Your Name" required>
-      <input type="text" id="phone" placeholder="Mobile Number" required>
-      <input type="text" id="location" placeholder="Location / Area" required>
-      <textarea id="description" placeholder="Describe the issue" rows="5" required></textarea>
-      <button type="submit"><i class="fa fa-paper-plane"></i> Submit Report</button>
+      <label for="name">Name (optional):</label>
+      <input type="text" id="name" placeholder="Your name" />
+
+      <label for="mobile">Mobile Number (required):</label>
+      <input type="tel" id="mobile" required placeholder="Enter mobile number" />
+
+      <label for="area">Area / Location:</label>
+      <input type="text" id="area" placeholder="e.g., Police Bazaar" />
+
+      <label for="description">Description:</label>
+      <textarea id="description" placeholder="Describe the issue..." required></textarea>
+
+      <label for="photo">Upload Photo (optional):</label>
+      <input type="file" id="photo" accept="image/*" />
+
+      <button type="submit">Submit Report</button>
     </form>
   </section>
 
-  <!-- Map Section -->
-  <section class="map-card">
-    <h2>Issue Map</h2>
-    <div id="map"></div>
+  <section id="recent">
+    <h2>Recent Reports</h2>
+    <div id="reportList"></div>
   </section>
 
-  <!-- Recent Issues -->
-  <section class="recent-card" id="recent">
-    <h2>Recent Issues</h2>
-    <ul id="recentList" class="recent-list"></ul>
-  </section>
-
-  <!-- About Us -->
-  <section class="about-card" id="about">
-    <h2>About Us</h2>
+  <section id="about">
+    <h2>About Fix My City</h2>
     <p>
-      Fix My City is a platform dedicated to helping citizens report and track neighborhood issues. 
-      Our mission is to empower communities and ensure accountability in city maintenance. 
-      Users can submit issues, track the status, and contribute to a cleaner, safer city.
+      Fix My City empowers citizens to report civic issues and track their resolution.
+      Every voice counts toward building cleaner, safer neighborhoods.
     </p>
   </section>
 
-</main>
+  <footer>
+    <p>© 2025 Fix My City | Built with Leaflet & Firebase</p>
+  </footer>
 
-<!-- Firebase & JS -->
-<script type="module" src="js/main.js"></script>
-
-<!-- Google Maps API -->
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
-
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o9N1j8MkF2E1zFEpZDY4ZcX5ZT0xE0pjo7l3RZp6rxU="
+    crossorigin=""
+  ></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
