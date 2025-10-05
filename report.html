@@ -140,17 +140,20 @@
       `Latitude: ${selectedLocation.lat.toFixed(6)}, Longitude: ${selectedLocation.lng.toFixed(6)}`;
   });
 
-  // Form Submission
   document.getElementById('reportForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    if(!selectedLocation){
-      alert('Please select a location on the map');
-      return;
-    }
-
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
+
+    console.log("Submitting report...");
+
+    if(!selectedLocation){
+      alert('Please select a location on the map');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Report';
+      return;
+    }
 
     try{
       const formData = {
@@ -162,15 +165,20 @@
         status: "Reported",
         createdAt: new Date()
       };
+      console.log("Form data prepared", formData);
 
       const photoFile = document.getElementById('photo').files[0];
       if(photoFile){
+        console.log("Uploading photo...", photoFile.name);
         const storageRef = ref(storage, `reports/${Date.now()}_${photoFile.name}`);
         await uploadBytes(storageRef, photoFile);
         formData.photoURL = await getDownloadURL(storageRef);
+        console.log("Photo uploaded", formData.photoURL);
       }
 
+      console.log("Adding document to Firestore...");
       await addDoc(collection(db, "reports"), formData);
+      console.log("Document added successfully");
 
       alert('Report submitted successfully!');
       e.target.reset();
@@ -178,9 +186,10 @@
       locationMarker = null;
       selectedLocation = null;
       document.getElementById('locationCoords').textContent = 'No location selected';
+
     } catch(err){
-      console.error(err);
-      alert('Error submitting report.');
+      console.error("Submission error:", err);
+      alert('Error submitting report. Check console for details.');
     } finally{
       submitBtn.disabled = false;
       submitBtn.textContent = 'Submit Report';
