@@ -1,213 +1,155 @@
-/* -------------------------
-   Reset & Global Styles
-------------------------- */
+/* ===== GLOBAL STYLES ===== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
 }
 
 body {
-  font-family: 'Roboto', sans-serif;
-  background: #f4f6f8;
+  background: #f5f6fa;
   color: #333;
   line-height: 1.6;
 }
 
-/* -------------------------
-   Navbar
-------------------------- */
+/* ===== NAVBAR ===== */
 nav {
+  background-color: #1e3a8a;
+  color: white;
+  padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #007bff;
-  padding: 1rem 2rem;
-  color: #fff;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-nav .logo {
-  font-size: 1.8rem;
-  font-weight: bold;
+nav h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
-nav .nav-links {
+nav ul {
   list-style: none;
   display: flex;
   gap: 1.5rem;
 }
 
-nav .nav-links li a {
-  color: #fff;
+nav ul li a {
+  color: white;
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.3s;
+  transition: color 0.3s ease;
 }
 
-nav .nav-links li a:hover {
+nav ul li a:hover {
   color: #ffd700;
 }
 
-/* -------------------------
-   Hero Section
-------------------------- */
-header {
-  background: url('https://images.unsplash.com/photo-1584944512754-2eae0c7d88c1?auto=format&fit=crop&w=1950&q=80') center/cover no-repeat;
-  height: 60vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: #fff;
-}
-
-header .hero-content h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  text-shadow: 2px 2px 6px rgba(0,0,0,0.4);
-}
-
-header .hero-content p {
-  font-size: 1.2rem;
-  text-shadow: 1px 1px 4px rgba(0,0,0,0.4);
-}
-
-/* -------------------------
-   Stats Section
-------------------------- */
-.stats {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  padding: 2rem 1rem;
-  flex-wrap: wrap;
-}
-
-.stat-card {
-  background: #fff;
-  padding: 1.5rem 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  text-align: center;
-  flex: 1 1 200px;
-}
-
-.stat-card h3 {
-  margin-bottom: 0.5rem;
-  color: #007bff;
-}
-
-.stat-card p {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-/* -------------------------
-   Main Content Sections
-------------------------- */
+/* ===== MAIN CONTENT ===== */
 main {
-  padding: 2rem 1rem;
-  max-width: 1200px;
-  margin: auto;
-  display: flex;
-  flex-direction: column;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
   gap: 2rem;
 }
 
-.form-card, .map-card, .recent-card, .about-card {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: 1fr;
+  }
 }
 
-.form-card h2, .map-card h2, .recent-card h2, .about-card h2 {
-  margin-bottom: 1rem;
-  color: #007bff;
-}
-
-/* -------------------------
-   Form Styles
-------------------------- */
-#reportForm input, #reportForm textarea {
-  width: 100%;
-  padding: 0.8rem 1rem;
-  margin-bottom: 1rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-
-#reportForm button {
-  background: #007bff;
-  color: #fff;
-  border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.3s;
-}
-
-#reportForm button:hover {
-  background: #0056b3;
-}
-
-/* -------------------------
-   Map Section
-------------------------- */
+/* ===== MAP SECTION ===== */
 #map {
   width: 100%;
-  height: 400px;
+  height: 500px;
   border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* -------------------------
-   Recent Issues List
-------------------------- */
-.recent-list {
-  list-style: none;
-  max-height: 300px;
-  overflow-y: auto;
+/* ===== STATISTICS ===== */
+.stats {
+  background: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-.recent-list li {
-  padding: 0.8rem;
+.stats h2 {
+  margin-bottom: 1rem;
+  color: #1e3a8a;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
   border-bottom: 1px solid #eee;
 }
 
-.recent-list li .status {
-  float: right;
-  font-weight: bold;
-  color: #007bff;
+.stat-item:last-child {
+  border-bottom: none;
 }
 
-/* -------------------------
-   About Us Section
-------------------------- */
-.about-card p {
-  font-size: 1rem;
-  line-height: 1.8;
+/* ===== REPORT FORM ===== */
+.report {
+  background: white;
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* -------------------------
-   Responsive Styles
-------------------------- */
-@media(max-width:768px) {
-  nav .nav-links {
-    flex-direction: column;
-    gap: 1rem;
-  }
+.report h2 {
+  margin-bottom: 1rem;
+  color: #1e3a8a;
+}
 
-  header .hero-content h1 {
-    font-size: 2rem;
-  }
+.report label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
 
-  .stats {
-    flex-direction: column;
-    gap: 1rem;
-  }
+.report input,
+.report textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.report input:focus,
+.report textarea:focus {
+  border-color: #1e3a8a;
+  outline: none;
+}
+
+.report button {
+  background-color: #1e3a8a;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.report button:hover {
+  background-color: #0f2564;
+}
+
+/* ===== FOOTER ===== */
+footer {
+  text-align: center;
+  padding: 1rem;
+  margin-top: 2rem;
+  background-color: #1e3a8a;
+  color: white;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
 }
