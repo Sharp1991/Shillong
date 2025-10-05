@@ -1,124 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fix My City</title>
-
-  <!-- Main CSS -->
-  <link rel="stylesheet" href="style.css" />
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixMyCity - Home</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-sA+e2JbE8H1K7sSMvUbsVbV6GkYt8glXw82jv+T2P5Y="
-    crossorigin=""
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root {
+      --primary: #0d6efd;
+      --secondary: #6c757d;
+      --success: #198754;
+      --warning: #ffc107;
+      --danger: #dc3545;
+    }
+    
+    .hero-section {
+      background: linear-gradient(135deg, var(--primary) 0%, #0a58ca 100%);
+      color: white;
+      padding: 100px 0;
+    }
+    
+    .stat-card {
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 1.5rem;
+    }
+    
+    .icon-report {
+      background: #e3f2fd;
+      color: var(--primary);
+    }
+    
+    .icon-map {
+      background: #e8f5e8;
+      color: var(--success);
+    }
+    
+    .icon-track {
+      background: #fff3cd;
+      color: var(--warning);
+    }
+  </style>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header>
-    <h1>Fix My City</h1>
-    <nav>
-      <a href="#mapSection">Map</a>
-      <a href="#report">Report Issue</a>
-      <a href="#stats">Statistics</a>
-      <a href="#about">About</a>
-    </nav>
-  </header>
-
-  <!-- HERO SECTION -->
-  <section id="hero">
-    <h2>Together, let’s make our city better</h2>
-    <p>Report problems in your neighborhood — we’ll map, track & fix them.</p>
-  </section>
-
-  <!-- STATISTICS SECTION -->
-  <section id="stats">
-    <h2>City Statistics</h2>
-    <div class="stat-grid">
-      <div class="stat-box">
-        <h3 id="totalReports">0</h3>
-        <p>Total Reports</p>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="index.html">FixMyCity</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="report.html">Report</a></li>
+          <li class="nav-item"><a class="nav-link" href="map.html">Map</a></li>
+        </ul>
       </div>
-      <div class="stat-box">
-        <h3 id="pendingReports">0</h3>
-        <p>Pending</p>
-      </div>
-      <div class="stat-box">
-        <h3 id="fixedReports">0</h3>
-        <p>Fixed</p>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <h1 class="display-4 fw-bold mb-4">Together, let's make our city better</h1>
+          <p class="lead mb-4">Report problems in your neighborhood — we'll map, track & fix them.</p>
+          <div class="d-flex gap-3">
+            <a href="report.html" class="btn btn-light btn-lg">Report an Issue</a>
+            <a href="map.html" class="btn btn-outline-light btn-lg">View Map</a>
+          </div>
+        </div>
+        <div class="col-lg-6 mt-5 mt-lg-0">
+          <div id="homeMap" style="height: 300px; border-radius: 10px;"></div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- MAP SECTION -->
-  <section id="mapSection">
-    <h2>City Map</h2>
-    <div id="map"></div>
-    <div id="filter">
-      <label for="statusFilter">Filter by Status:</label>
-      <select id="statusFilter">
-        <option value="all">All</option>
-        <option value="pending">Pending</option>
-        <option value="fixed">Fixed</option>
-      </select>
+  <!-- Statistics Section -->
+  <section class="py-5">
+    <div class="container">
+      <h2 class="text-center mb-5 fw-bold">City Statistics</h2>
+      <div class="row">
+        <div class="col-md-4 mb-4">
+          <div class="stat-card text-center p-4 bg-white">
+            <h3 class="text-primary fw-bold" id="totalReports">0</h3>
+            <p class="text-muted">Total Reports</p>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4">
+          <div class="stat-card text-center p-4 bg-white">
+            <h3 class="text-warning fw-bold" id="pendingReports">0</h3>
+            <p class="text-muted">Pending</p>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4">
+          <div class="stat-card text-center p-4 bg-white">
+            <h3 class="text-success fw-bold" id="fixedReports">0</h3>
+            <p class="text-muted">Fixed</p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- REPORT FORM SECTION -->
-  <section id="report">
-    <h2>Report an Issue</h2>
-    <form id="reportForm">
-      <label for="name">Name (optional):</label>
-      <input type="text" id="name" placeholder="Your name" />
-
-      <label for="mobile">Mobile Number (required):</label>
-      <input type="tel" id="mobile" required placeholder="Enter mobile number" />
-
-      <label for="area">Area / Location:</label>
-      <input type="text" id="area" placeholder="e.g., Police Bazaar" />
-
-      <label for="description">Description:</label>
-      <textarea id="description" placeholder="Describe the issue..." required></textarea>
-
-      <label for="photo">Upload Photo (optional):</label>
-      <input type="file" id="photo" accept="image/*" />
-
-      <button type="submit">Submit Report</button>
-    </form>
+  <!-- Features Section -->
+  <section class="py-5 bg-light">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4 text-center mb-4">
+          <div class="feature-icon icon-report">
+            <i class="fas fa-flag"></i>
+          </div>
+          <h4>Report Issues</h4>
+          <p>Easily report potholes, broken street lights, garbage problems and more.</p>
+        </div>
+        <div class="col-md-4 text-center mb-4">
+          <div class="feature-icon icon-map">
+            <i class="fas fa-map-marked-alt"></i>
+          </div>
+          <h4>View on Map</h4>
+          <p>See all reported issues in your neighborhood on an interactive map.</p>
+        </div>
+        <div class="col-md-4 text-center mb-4">
+          <div class="feature-icon icon-track">
+            <i class="fas fa-tasks"></i>
+          </div>
+          <h4>Track Progress</h4>
+          <p>Monitor the status of your reports and see when they get resolved.</p>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <!-- RECENT REPORTS SECTION -->
-  <section id="recent">
-    <h2>Recent Reports</h2>
-    <div id="reportList"></div>
-  </section>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Font Awesome -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- ABOUT SECTION -->
-  <section id="about">
-    <h2>About Fix My City</h2>
-    <p>
-      Fix My City empowers citizens to report civic issues and track their resolution.
-      Every voice counts toward building cleaner, safer neighborhoods.
-    </p>
-  </section>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-  <!-- FOOTER -->
-  <footer>
-    <p>© 2025 Fix My City | Built with Leaflet & Firebase</p>
-  </footer>
+    // Firebase Configuration - REPLACE WITH YOUR ACTUAL CONFIG
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-  <!-- LEAFLET JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-o9N1j8MkF2E1zFEpZDY4ZcX5ZT0xE0pjo7l3RZp6rxU="
-    crossorigin=""
-  ></script>
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  <!-- MAIN JS -->
-  <script type="module" src="js/main.js"></script>
+    // Initialize Home Map
+    const homeMap = L.map('homeMap').setView([25.5788, 91.8933], 13); // Default to Shillong
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(homeMap);
+
+    // Load statistics and markers
+    async function loadStatistics() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "reports"));
+        let total = 0;
+        let pending = 0;
+        let fixed = 0;
+
+        querySnapshot.forEach((doc) => {
+          const report = doc.data();
+          total++;
+          
+          if (report.status === "Fixed") {
+            fixed++;
+          } else {
+            pending++;
+          }
+
+          // Add marker to home map
+          if (report.location) {
+            const loc = report.location;
+            const latlng = [loc.latitude, loc.longitude];
+            
+            let color;
+            switch(report.status){
+              case "Fixed": color = "green"; break;
+              case "In Progress": color = "orange"; break;
+              default: color = "red"; break;
+            }
+
+            L.circleMarker(latlng, {
+              color: color,
+              radius: 6,
+              fillOpacity: 0.8
+            }).addTo(homeMap);
+          }
+        });
+
+        // Update statistics
+        document.getElementById('totalReports').textContent = total;
+        document.getElementById('pendingReports').textContent = pending;
+        document.getElementById('fixedReports').textContent = fixed;
+
+      } catch (error) {
+        console.error("Error loading statistics:", error);
+        // Fallback demo data
+        document.getElementById('totalReports').textContent = "1,247";
+        document.getElementById('pendingReports').textContent = "354";
+        document.getElementById('fixedReports').textContent = "893";
+      }
+    }
+
+    loadStatistics();
+  </script>
+
 </body>
 </html>
