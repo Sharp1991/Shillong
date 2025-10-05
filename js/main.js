@@ -1,146 +1,83 @@
-// ------------------------
-// Firebase Initialization
-// ------------------------
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+// Initialize the Leaflet map
+const map = L.map('map').setView([25.5788, 91.8933], 13); // Shillong default
 
-// Your Firebase config
-const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+// Store markers and reports
+let reports = [];
 
-// ------------------------
-// Report Form Submission
-// ------------------------
-const reportForm = document.getElementById("reportForm");
+// Add marker when user clicks on the map
+map.on('click', function(e) {
+  const { lat, lng } = e.latlng;
+  const newMarker = L.marker([lat, lng], { icon: redIcon }).addTo(map);
+  reports.push({ lat, lng, status: "reported" });
+  updateStats();
+});
+
+// Custom marker icons
+const redIcon = L.icon({
+  iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+});
+
+const greenIcon = L.icon({
+  iconUrl: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+});
+
+// ===== FORM HANDLING =====
+const reportForm = document.querySelector("#reportForm");
+
 reportForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const name = document.getElementById("name").value;
-  const phone = document.getElementById("phone").value;
-  const location = document.getElementById("location").value;
-  const description = document.getElementById("description").value;
+  const issueDesc = document.querySelector("#issueDesc").value.trim();
+  const phone = document.querySelector("#phone").value.trim();
+  const imageFile = document.querySelector("#image").files[0];
 
-  try {
-    await addDoc(collection(db, "reports"), {
-      name,
-      phone,
-      location,
-      description,
-      status: "Pending",
-      timestamp: new Date()
-    });
-
-    alert("Report submitted successfully!");
-    reportForm.reset();
-    loadReports();
-  } catch (error) {
-    console.error("Error submitting report:", error);
+  if (!issueDesc || !phone) {
+    alert("Please fill in all mandatory fields.");
+    return;
   }
+
+  // Image preview/upload simulation (to be replaced with Firebase)
+  let imageUrl = "";
+  if (imageFile) {
+    imageUrl = URL.createObjectURL(imageFile);
+  }
+
+  // Add issue marker on map
+  const center = map.getCenter();
+  const marker = L.marker([center.lat, center.lng], { icon: redIcon })
+    .addTo(map)
+    .bindPopup(`<b>Issue:</b> ${issueDesc}<br><b>Phone:</b> ${phone}`)
+    .openPopup();
+
+  reports.push({ issueDesc, phone, lat: center.lat, lng: center.lng, status: "reported", imageUrl });
+
+  // Clear form
+  reportForm.reset();
+  alert("Issue reported successfully!");
+  updateStats();
+
+  // (Next Step) — Send to Firebase or Email service here
 });
 
-// ------------------------
-// Load Recent Reports
-// ------------------------
-const recentList = document.getElementById("recentList");
-const totalReports = document.getElementById("totalReports");
-const fixedReports = document.getElementById("fixedReports");
-const pendingReports = document.getElementById("pendingReports");
+// ===== STATISTICS =====
+function updateStats() {
+  const total = reports.length;
+  const fixed = reports.filter(r => r.status === "fixed").length;
+  const pending = total - fixed;
 
-async function loadReports() {
-  recentList.innerHTML = "";
-  const q = query(collection(db, "reports"), orderBy("timestamp", "desc"));
-  const snapshot = await getDocs(q);
-
-  let total = 0, fixed = 0, pending = 0;
-
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    total++;
-    if(data.status === "Fixed") fixed++;
-    else pending++;
-
-    const li = document.createElement("li");
-    li.innerHTML = `<strong>${data.location}</strong> - ${data.description} <span class="status">${data.status}</span>`;
-    recentList.appendChild(li);
-  });
-
-  totalReports.textContent = total;
-  fixedReports.textContent = fixed;
-  pendingReports.textContent = pending;
+  document.getElementById("totalCount").textContent = total;
+  document.getElementById("fixedCount").textContent = fixed;
+  document.getElementById("pendingCount").textContent = pending;
 }
 
-// Initial load
-loadReports();
-
-// ------------------------
-// Google Maps Initialization
-// ------------------------
-let map;
-window.initMap = function() {
-  map = new google.maps.Map(document.getElementById("map"), {
-    center: { lat: 25.57, lng: 91.88 }, // default: Shillong
-    zoom: 12
-  });
-
-  // Place markers from Firestore
-  loadReportsForMap();
-};
-
-async function loadReportsForMap() {
-  const snapshot = await getDocs(collection(db, "reports"));
-
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    if(data.location) {
-      const marker = new google.maps.Marker({
-        position: getLatLngFromLocation(data.location), // Replace with geocoding if needed
-        map: map,
-        title: data.description
-      });
-    }
-  });
-}
-
-// Dummy function: convert location string to lat/lng
-function getLatLngFromLocation(location) {
-  // For real app: integrate Google Geocoding API
-  // Placeholder: random nearby coords
-  return { lat: 25.57 + Math.random() * 0.01, lng: 91.88 + Math.random() * 0.01 };
-}
-
-// ------------------------
-// Phone Login
-// ------------------------
-const loginBtn = document.getElementById("loginBtn");
-
-loginBtn.addEventListener("click", () => {
-  const phoneNumber = prompt("Enter your phone number with country code (+91...)");
-  if(!phoneNumber) return;
-
-  window.recaptchaVerifier = new RecaptchaVerifier('loginBtn', {
-    'size': 'invisible'
-  }, auth);
-
-  signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
-    .then(confirmationResult => {
-      const code = prompt("Enter the OTP sent to your phone");
-      return confirmationResult.confirm(code);
-    })
-    .then(result => {
-      alert("Logged in successfully!");
-    })
-    .catch(error => {
-      console.error("Phone login error:", error);
-    });
-});
+// ===== INITIAL STATS =====
+updateStats();
