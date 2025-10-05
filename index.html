@@ -3,155 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FixMyCity - Neighborhood Issues</title>
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css">
+  <title>Fix My City</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; }
+    header { background: #2c3e50; color: white; padding: 1rem; text-align:center; }
+    main { padding: 2rem; }
+    input, textarea, button { display:block; margin:0.5rem 0; width:100%; padding:0.5rem; }
+    button { background:#27ae60; color:white; border:none; cursor:pointer; }
+    button:hover { background:#2ecc71; }
+  </style>
 </head>
 <body>
 
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-      <a class="navbar-brand fw-bold" href="#">FixMyCity</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="report.html">Report</a></li>
-          <li class="nav-item"><a class="nav-link" href="map.html">Map</a></li>
-          <li class="nav-item"><a class="nav-link" href="#">About</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+<header>
+  <h1>Fix My City</h1>
+  <p>Report neighborhood issues quickly and safely</p>
+</header>
 
-  <!-- Hero Section -->
-  <section class="bg-light text-center py-5">
-    <div class="container">
-      <h1 class="display-4 fw-bold">Your Voice. Your City. Make a Change.</h1>
-      <p class="lead mb-4">Report problems, track issues, and help build a better community.</p>
-      <a href="report.html" class="btn btn-primary btn-lg me-2">Report a Problem</a>
-      <a href="map.html" class="btn btn-success btn-lg">View Map</a>
-    </div>
-  </section>
+<main>
+  <h2>Submit a Report</h2>
+  <form id="reportForm">
+    <input type="text" id="name" placeholder="Your Name" required>
+    <input type="text" id="location" placeholder="Location / Area" required>
+    <textarea id="description" placeholder="Describe the issue" required></textarea>
+    <button type="submit">Submit Report</button>
+  </form>
+</main>
 
-  <!-- Stats Section -->
-  <section class="py-5 bg-light">
-    <div class="container text-center">
-      <h2 class="mb-4 fw-bold">City Issue Statistics</h2>
-      <div class="row">
-        <div class="col-md-4 mb-3">
-          <div class="card shadow-sm p-4">
-            <h3 id="total-reports" class="display-5">0</h3>
-            <p class="mb-0">Total Reports</p>
-          </div>
-        </div>
-        <div class="col-md-4 mb-3">
-          <div class="card shadow-sm p-4">
-            <h3 id="resolved-reports" class="display-5">0</h3>
-            <p class="mb-0">Resolved</p>
-          </div>
-        </div>
-        <div class="col-md-4 mb-3">
-          <div class="card shadow-sm p-4">
-            <h3 id="inprogress-reports" class="display-5">0</h3>
-            <p class="mb-0">In Progress</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+<script type="module">
+  // Firebase imports
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-  <!-- Features Section -->
-  <section class="py-5">
-    <div class="container">
-      <div class="row text-center">
-        <div class="col-md-4 mb-4">
-          <div class="card h-100 shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title fw-bold">Real-time Map</h5>
-              <p class="card-text">See all reported neighborhood issues instantly on the interactive map.</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 mb-4">
-          <div class="card h-100 shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title fw-bold">Submit Reports Easily</h5>
-              <p class="card-text">Upload photos, select location, and describe issues in a simple form.</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 mb-4">
-          <div class="card h-100 shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title fw-bold">Track Status</h5>
-              <p class="card-text">Authorities update the status so you can see which issues are being resolved.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  // Your new restricted Firebase API key
+  const firebaseConfig = {
+    apiKey: "YOUR_NEW_RESTRICTED_API_KEY",
+    authDomain: "shillong-c1f6b.firebaseapp.com",
+    projectId: "shillong-c1f6b",
+    storageBucket: "shillong-c1f6b.appspot.com",
+    messagingSenderId: "83909239419",
+    appId: "1:83909239419:web:8e7a3baf38e27a685af8de",
+    measurementId: "G-ZVXNXLR0KN"
+  };
 
-  <!-- Footer -->
-  <footer class="bg-primary text-white text-center py-4">
-    <div class="container">
-      <p class="mb-0">&copy; 2025 FixMyCity. All rights reserved.</p>
-    </div>
-  </footer>
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  // Handle form submission
+  const form = document.getElementById('reportForm');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const location = document.getElementById('location').value;
+    const description = document.getElementById('description').value;
 
-  <!-- Firebase SDK (module) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, GeoPoint } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
-
-    // ====== CHANGE THIS ======
-    const firebaseConfig = {
-  apiKey: "AIzaSyBI1_s8Xx2qzRfRRhont4cLJnNItV6MiTs",
-  authDomain: "shillong-c1f6b.firebaseapp.com",
-  projectId: "shillong-c1f6b",
-  storageBucket: "shillong-c1f6b.appspot.com",  // Fixed ".firebasestorage.app" to ".appspot.com"
-  messagingSenderId: "83909239419",
-  appId: "1:83909239419:web:8e7a3baf38e27a685af8de"
-};
-    };
-    // ==========================
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const reportsCol = collection(db, "reports");
-
-    function updateStats(snapshot) {
-      let total = 0, resolved = 0, inProgress = 0;
-
-      snapshot.forEach(doc => {
-        total++;
-        const status = doc.data().status;
-        if(status === "Fixed") resolved++;
-        else if(status === "In Progress") inProgress++;
+    try {
+      await addDoc(collection(db, "reports"), {
+        name,
+        location,
+        description,
+        timestamp: new Date()
       });
-
-      document.getElementById('total-reports').textContent = total;
-      document.getElementById('resolved-reports').textContent = resolved;
-      document.getElementById('inprogress-reports').textContent = inProgress;
+      alert("Report submitted successfully!");
+      form.reset();
+    } catch (err) {
+      console.error("Error adding document: ", err);
+      alert("Failed to submit report. Please try again.");
     }
-
-    // Listen in real-time
-    onSnapshot(reportsCol, snapshot => {
-      updateStats(snapshot);
-    });
-  </script>
+  });
+</script>
 
 </body>
 </html>
