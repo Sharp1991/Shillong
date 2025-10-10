@@ -161,24 +161,13 @@
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Firebase SDK -->
+  <!-- Supabase SDK -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-    // Firebase Configuration - REPLACE WITH YOUR ACTUAL CONFIG
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
+    const supabaseKey = 'PASTE_YOUR_ANON_KEY_HERE';
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Initialize Home Map
     const homeMap = L.map('homeMap').setView([25.5788, 91.8933], 13); // Default to Shillong
@@ -186,37 +175,34 @@
       attribution: '© OpenStreetMap contributors'
     }).addTo(homeMap);
 
-    // Load statistics and markers
     async function loadStatistics() {
       try {
-        const querySnapshot = await getDocs(collection(db, "reports"));
-        let total = 0;
-        let pending = 0;
-        let fixed = 0;
+        const { data: reports, error } = await supabase
+          .from('reports')
+          .select('*');
 
-        querySnapshot.forEach((doc) => {
-          const report = doc.data();
-          total++;
-          
-          if (report.status === "Fixed") {
-            fixed++;
-          } else {
-            pending++;
-          }
+        if(error) throw error;
 
-          // Add marker to home map
-          if (report.location) {
-            const loc = report.location;
-            const latlng = [loc.latitude, loc.longitude];
-            
+        let total = reports.length;
+        let pending = reports.filter(r => r.status !== 'Fixed').length;
+        let fixed = reports.filter(r => r.status === 'Fixed').length;
+
+        // Update statistics
+        document.getElementById('totalReports').textContent = total;
+        document.getElementById('pendingReports').textContent = pending;
+        document.getElementById('fixedReports').textContent = fixed;
+
+        // Add markers
+        reports.forEach(report => {
+          if(report.lat && report.lng){
             let color;
             switch(report.status){
-              case "Fixed": color = "green"; break;
-              case "In Progress": color = "orange"; break;
-              default: color = "red"; break;
+              case 'Fixed': color = 'green'; break;
+              case 'In Progress': color = 'orange'; break;
+              default: color = 'red'; break;
             }
 
-            L.circleMarker(latlng, {
+            L.circleMarker([report.lat, report.lng], {
               color: color,
               radius: 6,
               fillOpacity: 0.8
@@ -224,17 +210,11 @@
           }
         });
 
-        // Update statistics
-        document.getElementById('totalReports').textContent = total;
-        document.getElementById('pendingReports').textContent = pending;
-        document.getElementById('fixedReports').textContent = fixed;
-
-      } catch (error) {
-        console.error("Error loading statistics:", error);
-        // Fallback demo data
-        document.getElementById('totalReports').textContent = "1,247";
-        document.getElementById('pendingReports').textContent = "354";
-        document.getElementById('fixedReports').textContent = "893";
+      } catch(err){
+        console.error('Error loading statistics:', err);
+        document.getElementById('totalReports').textContent = "N/A";
+        document.getElementById('pendingReports').textContent = "N/A";
+        document.getElementById('fixedReports').textContent = "N/A";
       }
     }
 
