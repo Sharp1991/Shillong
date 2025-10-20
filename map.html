@@ -10,7 +10,25 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     #map { height: 100vh; }
-    .modal-img { width: 100%; height: auto; }
+    .modal-img { width: 100%; height: 100%; object-fit: contain; }
+    .modal-fullscreen .modal-dialog {
+      max-width: 100%;
+      margin: 0;
+      height: 100%;
+    }
+    .modal-fullscreen .modal-content {
+      height: 100%;
+      border: none;
+      border-radius: 0;
+      background: #000;
+    }
+    .modal-fullscreen .modal-body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      padding: 0;
+    }
   </style>
 </head>
 <body>
@@ -35,17 +53,14 @@
 <!-- Map Container -->
 <div id="map"></div>
 
-<!-- Modal for Full-Size Image -->
-<div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+<!-- Fullscreen Modal for Photo -->
+<div class="modal fade" id="photoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-fullscreen">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="photoModalLabel">Issue Photo</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body text-center">
+      <div class="modal-body">
         <img id="modalImage" class="modal-img" src="" alt="Issue Photo">
       </div>
+      <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
   </div>
 </div>
@@ -101,7 +116,7 @@
     }
   }
 
-  // Open Modal Function
+  // Open modal in full-screen
   window.openModal = function(url){
     const modalImg = document.getElementById('modalImage');
     modalImg.src = url;
