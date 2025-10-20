@@ -4,113 +4,78 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FixMyCity - Map</title>
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    #map { height: 100vh; }
+    .popup-img { max-width: 200px; max-height: 150px; display:block; margin:auto; border-radius: 5px; }
+  </style>
 </head>
 <body>
 
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-      <a class="navbar-brand fw-bold" href="index.html">FixMyCity</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="report.html">Report</a></li>
-          <li class="nav-item"><a class="nav-link active" href="map.html">Map</a></li>
-        </ul>
-      </div>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="index.html">FixMyCity</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="report.html">Report</a></li>
+        <li class="nav-item"><a class="nav-link active" href="map.html">Map</a></li>
+      </ul>
     </div>
-  </nav>
+  </div>
+</nav>
 
-  <!-- Map Section -->
-  <section class="py-5">
-    <div class="container-fluid">
-      <h2 class="mb-4 text-center fw-bold">Neighborhood Issues Map</h2>
-      <div id="map" style="height: 600px;"></div>
-    </div>
-  </section>
+<div id="map"></div>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, GeoPoint } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // ====== CHANGE THIS ======
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-    // ==========================
+  const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
+  const supabaseKey = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK'; // your anon key
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const reportsCol = collection(db, "reports");
+  const map = L.map('map').setView([25.5788, 91.8933], 13); // default Shillong
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
 
-    // Initialize Map
-    const map = L.map('map').setView([25.5788, 91.8933], 13); // Shillong
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+  async function loadReports() {
+    try {
+      const { data: reports, error } = await supabase
+        .from('report')
+        .select('*');
 
-    // Store markers to remove old ones on update
-    let markers = [];
+      if(error) throw error;
 
-    function clearMarkers() {
-      markers.forEach(marker => map.removeLayer(marker));
-      markers = [];
+      reports.forEach(report => {
+        if(report.latitude && report.longitude){
+          const marker = L.marker([report.latitude, report.longitude]).addTo(map);
+
+          const popupContent = `
+            <h5>${report.title || 'No Title'}</h5>
+            <p>${report.description || 'No Description'}</p>
+            ${report.photo_url ? `<img class="popup-img" src="${report.photo_url}" alt="Issue photo"/>` : ''}
+            <p><strong>Status:</strong> ${report.status || 'Reported'}</p>
+          `;
+
+          marker.bindPopup(popupContent);
+        }
+      });
+
+    } catch(err) {
+      console.error('Error loading reports:', err);
     }
+  }
 
-    function addMarker(report) {
-      const loc = report.location;
-      const latlng = [loc.latitude, loc.longitude];
-
-      let color;
-      switch(report.status){
-        case "Fixed": color = "green"; break;
-        case "In Progress": color = "orange"; break;
-        default: color = "red"; break;
-      }
-
-      const marker = L.circleMarker(latlng, {
-        color: color,
-        radius: 10,
-        fillOpacity: 0.8
-      }).addTo(map);
-
-      let popupContent = `<strong>${report.title}</strong><br>
-                          <em>${report.category}</em><br>
-                          ${report.description}<br>
-                          <strong>Status:</strong> ${report.status}`;
-      if(report.photoURL){
-        popupContent += `<br><img src="${report.photoURL}" style="width:150px;margin-top:5px;">`;
-      }
-
-      marker.bindPopup(popupContent);
-      markers.push(marker);
-    }
-
-    // Real-time listener
-    onSnapshot(reportsCol, snapshot => {
-      clearMarkers();
-      snapshot.forEach(doc => addMarker(doc.data()));
-    });
-  </script>
+  loadReports();
+</script>
 
 </body>
 </html>
