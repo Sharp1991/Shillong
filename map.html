@@ -1,18 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FixMyCity - Map</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<style>
-  #map { height: 100vh; width: 100%; }
-  .popup-img { width: 100%; max-height: 150px; object-fit: cover; border-radius: 5px; margin-top: 5px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixMyCity - Map</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    #homeMap {
+      height: 80vh; /* Mobile-friendly height */
+      min-height: 400px;
+      width: 100%;
+    }
+  </style>
 </head>
 <body>
 
+<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
   <div class="container">
     <a class="navbar-brand fw-bold" href="index.html">FixMyCity</a>
@@ -29,53 +35,62 @@
   </div>
 </nav>
 
-<div id="map"></div>
+<!-- Map Container -->
+<div id="homeMap"></div>
 
+<!-- JS Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Supabase SDK -->
 <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-  const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
-  const supabaseKey = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK';
-  const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
+const supabaseKey = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK'; // your anon key
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const map = L.map('map').setView([25.5788, 91.8933], 13);
+// Initialize Map
+const homeMap = L.map('homeMap').setView([25.5788, 91.8933], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(homeMap);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
+// Feature group for all markers
+const markerGroup = L.featureGroup().addTo(homeMap);
 
-  async function loadReports() {
-    try {
-      const { data: reports, error } = await supabase.from('report').select('*');
-      if(error) throw error;
+// Load reports from Supabase
+async function loadReports() {
+  try {
+    const { data: reports, error } = await supabase
+      .from('report')
+      .select('*');
 
-      reports.forEach(report => {
-        if(report.latitude && report.longitude){
-          let color = report.status === 'Fixed' ? 'green' : report.status === 'In Progress' ? 'orange' : 'red';
-          const marker = L.circleMarker([report.latitude, report.longitude], {
-            color: color,
-            radius: 7,
-            fillOpacity: 0.8
-          }).addTo(map);
+    if (error) throw error;
 
-          let popupContent = `<b>${report.title || 'No Title'}</b><br>
-                              ${report.description || 'No Description'}<br>
-                              Status: ${report.status || 'Reported'}`;
-          if(report.photo_url) {
-            popupContent += `<br><img src="${report.photo_url}" class="popup-img"/>`;
-          }
-          marker.bindPopup(popupContent);
-        }
-      });
+    reports.forEach(report => {
+      if(report.latitude && report.longitude){
+        const marker = L.marker([report.latitude, report.longitude]);
+        let popupContent = `<b>${report.title || 'No title'}</b><br>`;
+        if(report.photo_url) popupContent += `<img src="${report.photo_url}" width="120" style="border-radius:5px;">`;
+        if(report.description) popupContent += `<br>${report.description}`;
+        marker.bindPopup(popupContent);
+        marker.addTo(markerGroup);
+      }
+    });
 
-    } catch(err) {
-      console.error('Error loading reports:', err);
-    }
+    if(markerGroup.getLayers().length) homeMap.fitBounds(markerGroup.getBounds(), { padding: [50,50] });
+
+    // Fix mobile rendering
+    setTimeout(() => homeMap.invalidateSize(), 100);
+
+  } catch(err) {
+    console.error('Error loading reports:', err);
+    alert('Failed to load reports. Check console.');
   }
+}
 
-  loadReports();
+loadReports();
 </script>
 
 </body>
