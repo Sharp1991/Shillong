@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FixMyCity - Report Issue</title>
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
     .report-form { max-width: 800px; margin: 0 auto; }
@@ -16,7 +14,6 @@
 </head>
 <body>
 
-<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
   <div class="container">
     <a class="navbar-brand fw-bold" href="index.html">FixMyCity</a>
@@ -33,7 +30,6 @@
   </div>
 </nav>
 
-<!-- Report Form Section -->
 <section class="py-5 bg-light">
   <div class="container">
     <div class="report-form">
@@ -43,7 +39,6 @@
       </div>
 
       <form id="reportForm">
-        <!-- Issue Details -->
         <div class="form-section">
           <h3 class="mb-4">Issue Details</h3>
           <div class="mb-3">
@@ -56,16 +51,15 @@
           </div>
         </div>
 
-        <!-- Location -->
         <div class="form-section">
           <h3 class="mb-4">Location</h3>
           <div class="mb-3">
             <label for="latitude" class="form-label fw-bold">Latitude</label>
-            <input type="number" class="form-control" id="latitude" placeholder="Click map to fill" readonly>
+            <input type="number" class="form-control" id="latitude" readonly>
           </div>
           <div class="mb-3">
             <label for="longitude" class="form-label fw-bold">Longitude</label>
-            <input type="number" class="form-control" id="longitude" placeholder="Click map to fill" readonly>
+            <input type="number" class="form-control" id="longitude" readonly>
           </div>
           <div class="mb-3">
             <label class="form-label fw-bold">Select Location on Map</label>
@@ -73,7 +67,6 @@
           </div>
         </div>
 
-        <!-- Photo Upload -->
         <div class="form-section">
           <h3 class="mb-4">Photo Evidence</h3>
           <div class="mb-3">
@@ -81,7 +74,6 @@
           </div>
         </div>
 
-        <!-- Submit Button -->
         <div class="text-center">
           <button type="submit" class="btn btn-primary btn-lg px-5">Submit Report</button>
         </div>
@@ -90,82 +82,78 @@
   </div>
 </section>
 
-<!-- JS Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- Supabase SDK -->
 <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
   const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
-  const supabaseKey = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK'; // your public anon key
+  const supabaseKey = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK'; // your anon key
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // Initialize Map
+  // Initialize Leaflet map
   const locationMap = L.map('locationMap').setView([25.5788, 91.8933], 13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(locationMap);
-
-  let locationMarker = null;
+  let marker = null;
 
   locationMap.on('click', (e) => {
     const { lat, lng } = e.latlng;
     document.getElementById('latitude').value = lat.toFixed(6);
     document.getElementById('longitude').value = lng.toFixed(6);
 
-    if(locationMarker) locationMap.removeLayer(locationMarker);
-    locationMarker = L.marker([lat, lng]).addTo(locationMap);
+    if(marker) locationMap.removeLayer(marker);
+    marker = L.marker([lat, lng]).addTo(locationMap);
   });
 
   document.getElementById('reportForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
 
     try {
       const title = document.getElementById('title').value;
       const description = document.getElementById('description').value;
-      const lat = parseFloat(document.getElementById('latitude').value);
-      const lng = parseFloat(document.getElementById('longitude').value);
+      const latitude = parseFloat(document.getElementById('latitude').value);
+      const longitude = parseFloat(document.getElementById('longitude').value);
       const photoFile = document.getElementById('photo').files[0];
 
-      if(!lat || !lng) throw new Error('Please select a location on the map');
-      if(!photoFile) throw new Error('Please upload a photo');
+      if(!latitude || !longitude) throw new Error('Select location on the map');
+      if(!photoFile) throw new Error('Upload a photo');
 
-      // Upload photo to Supabase Storage
+      // Upload photo
       const fileExt = photoFile.name.split('.').pop();
-      const fileName = `reports/${Date.now()}.${fileExt}`;
+      const fileName = `${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage.from('reports').upload(fileName, photoFile);
       if(uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage.from('reports').getPublicUrl(fileName);
       const photo_url = urlData.publicUrl;
 
-      // Insert report into Supabase
+      // Insert into Supabase
       const { error } = await supabase.from('report').insert([{
         title,
         description,
-        latitude: lat,
-        longitude: lng,
+        latitude,
+        longitude,
         photo_url,
         status: 'Reported',
         created_at: new Date().toISOString()
       }]);
-
       if(error) throw error;
 
       alert('Report submitted successfully!');
       e.target.reset();
-      if(locationMarker) locationMap.removeLayer(locationMarker);
-      locationMarker = null;
+      if(marker) locationMap.removeLayer(marker);
+      marker = null;
 
     } catch(err) {
       console.error(err);
       alert(err.message || 'Error submitting report');
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit Report';
+      btn.disabled = false;
+      btn.textContent = 'Submit Report';
     }
   });
 </script>
