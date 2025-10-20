@@ -47,6 +47,18 @@
         <div class="form-section">
           <h3 class="mb-4">Issue Details</h3>
           <div class="mb-3">
+            <label for="category" class="form-label fw-bold">Issue Type</label>
+            <select class="form-select" id="category" required>
+              <option value="">Select issue type</option>
+              <option value="Pothole">Pothole</option>
+              <option value="Street Light">Street Light Malfunction</option>
+              <option value="Garbage">Garbage Accumulation</option>
+              <option value="Drainage">Drainage Problem</option>
+              <option value="Traffic Sign">Damaged Traffic Sign</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
             <label for="title" class="form-label fw-bold">Title</label>
             <input type="text" class="form-control" id="title" placeholder="Brief description" required>
           </div>
@@ -60,24 +72,23 @@
         <div class="form-section">
           <h3 class="mb-4">Location</h3>
           <div class="mb-3">
-            <label for="latitude" class="form-label fw-bold">Latitude</label>
-            <input type="number" class="form-control" id="latitude" placeholder="Click map to fill" readonly>
-          </div>
-          <div class="mb-3">
-            <label for="longitude" class="form-label fw-bold">Longitude</label>
-            <input type="number" class="form-control" id="longitude" placeholder="Click map to fill" readonly>
+            <label for="address" class="form-label fw-bold">Address</label>
+            <input type="text" class="form-control" id="address" placeholder="Street address or landmark">
           </div>
           <div class="mb-3">
             <label class="form-label fw-bold">Select Location on Map</label>
+            <p class="text-muted small">Click on the map to mark the exact location</p>
             <div id="locationMap"></div>
+            <div id="locationCoords" class="mt-2 text-muted small">No location selected</div>
           </div>
         </div>
 
         <!-- Photo Upload -->
         <div class="form-section">
-          <h3 class="mb-4">Photo Evidence</h3>
+          <h3 class="mb-4">Photo Evidence *</h3>
           <div class="mb-3">
             <input class="form-control" type="file" id="photo" accept="image/*" required>
+            <div class="form-text">Upload a photo showing the issue (max 5MB)</div>
           </div>
         </div>
 
@@ -96,25 +107,27 @@
 
 <!-- Supabase SDK -->
 <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.31.0/dist/supabase-js.min.js';
 
   const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
-  const supabaseKey = 'YOUR_ANON_KEY'; // replace with your anon key
+  const supabaseKey = 'YOUR_ANON_KEY_HERE'; // Replace with your Supabase anon key
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // Initialize Map
   const locationMap = L.map('locationMap').setView([25.5788, 91.8933], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(locationMap);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(locationMap);
 
+  let selectedLocation = null;
   let locationMarker = null;
 
   locationMap.on('click', (e) => {
-    const { lat, lng } = e.latlng;
-    document.getElementById('latitude').value = lat.toFixed(6);
-    document.getElementById('longitude').value = lng.toFixed(6);
-
+    selectedLocation = e.latlng;
     if(locationMarker) locationMap.removeLayer(locationMarker);
-    locationMarker = L.marker([lat, lng]).addTo(locationMap);
+    locationMarker = L.marker(selectedLocation).addTo(locationMap);
+    document.getElementById('locationCoords').textContent = 
+      `Latitude: ${selectedLocation.lat.toFixed(6)}, Longitude: ${selectedLocation.lng.toFixed(6)}`;
   });
 
   document.getElementById('reportForm').addEventListener('submit', async (e) => {
@@ -123,47 +136,54 @@
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
 
-    try {
-      const title = document.getElementById('title').value;
-      const description = document.getElementById('description').value;
-      const lat = parseFloat(document.getElementById('latitude').value);
-      const lng = parseFloat(document.getElementById('longitude').value);
-      const photoFile = document.getElementById('photo').files[0];
+    if(!selectedLocation){
+      alert('Please select a location on the map');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Report';
+      return;
+    }
 
-      if(!lat || !lng) throw new Error('Please select a location on the map');
-      if(!photoFile) throw new Error('Please upload a photo');
+    const photoFile = document.getElementById('photo').files[0];
+    if(!photoFile){
+      alert('Please upload a photo of the issue');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Report';
+      return;
+    }
 
-      // Upload photo
+    try{
+      // Upload photo to Supabase Storage
       const fileExt = photoFile.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('reports').upload(fileName, photoFile);
+      const { error: uploadError } = await supabase.storage.from('reports').upload(fileName, photoFile, { cacheControl: '3600', upsert: false });
       if(uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage.from('reports').getPublicUrl(fileName);
-      const photo_url = urlData.publicUrl;
 
-      // Insert into Supabase
-      const { error } = await supabase.from('report').insert([{
-        title,
-        description,
-        latitude: lat,
-        longitude: lng,
-        photo_url,
+      const formData = {
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        latitude: selectedLocation.lat,
+        longitude: selectedLocation.lng,
+        address: document.getElementById('address').value,
+        photo_url: urlData.publicUrl,
         status: 'Reported',
         created_at: new Date().toISOString()
-      }]);
+      };
 
+      const { error } = await supabase.from('report').insert([formData]);
       if(error) throw error;
 
       alert('Report submitted successfully!');
       e.target.reset();
       if(locationMarker) locationMap.removeLayer(locationMarker);
       locationMarker = null;
-
-    } catch(err) {
+      selectedLocation = null;
+      document.getElementById('locationCoords').textContent = 'No location selected';
+    } catch(err){
       console.error(err);
-      alert(err.message || 'Error submitting report');
-    } finally {
+      alert('Error submitting report. Check console for details.');
+    } finally{
       submitBtn.disabled = false;
       submitBtn.textContent = 'Submit Report';
     }
