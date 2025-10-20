@@ -1,194 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FixMyCity - Report Issue</title>
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Report an Issue | FixMyCity</title>
   <style>
-    .report-form { max-width: 800px; margin: 0 auto; }
-    .form-section { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem; }
-    #locationMap { height: 300px; border-radius: 8px; margin-top: 1rem; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    form {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #status {
+      text-align: center;
+      font-weight: bold;
+      color: green;
+    }
   </style>
 </head>
 <body>
+  <h1>Report an Issue</h1>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-  <div class="container">
-    <a class="navbar-brand fw-bold" href="index.html">FixMyCity</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-        <li class="nav-item"><a class="nav-link active" href="report.html">Report</a></li>
-        <li class="nav-item"><a class="nav-link" href="map.html">Map</a></li>
-      </ul>
-    </div>
-  </div>
-</nav>
+  <form id="reportForm">
+    <input type="text" id="title" placeholder="Title of issue" required />
+    <textarea id="description" placeholder="Describe the problem..." required></textarea>
+    <input type="text" id="latitude" placeholder="Latitude (optional)" />
+    <input type="text" id="longitude" placeholder="Longitude (optional)" />
+    <input type="email" id="email" placeholder="Your email (optional)" />
+    <input type="url" id="photo_url" placeholder="Photo URL (required)" required />
+    <button type="submit">Submit Report</button>
+  </form>
 
-<!-- Report Form Section -->
-<section class="py-5 bg-light">
-  <div class="container">
-    <div class="report-form">
-      <div class="text-center mb-5">
-        <h1 class="fw-bold">Report an Issue</h1>
-        <p class="lead">Help us improve our city by reporting problems in your neighborhood</p>
-      </div>
+  <p id="status"></p>
 
-      <form id="reportForm">
-        <!-- Issue Details -->
-        <div class="form-section">
-          <h3 class="mb-4">Issue Details</h3>
-          <div class="mb-3">
-            <label for="category" class="form-label fw-bold">Issue Type</label>
-            <select class="form-select" id="category" required>
-              <option value="">Select issue type</option>
-              <option value="Pothole">Pothole</option>
-              <option value="Street Light">Street Light Malfunction</option>
-              <option value="Garbage">Garbage Accumulation</option>
-              <option value="Drainage">Drainage Problem</option>
-              <option value="Traffic Sign">Damaged Traffic Sign</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="title" class="form-label fw-bold">Title</label>
-            <input type="text" class="form-control" id="title" placeholder="Brief description" required>
-          </div>
-          <div class="mb-3">
-            <label for="description" class="form-label fw-bold">Description</label>
-            <textarea class="form-control" id="description" rows="4" placeholder="Detailed info" required></textarea>
-          </div>
-        </div>
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-        <!-- Location -->
-        <div class="form-section">
-          <h3 class="mb-4">Location</h3>
-          <div class="mb-3">
-            <label for="address" class="form-label fw-bold">Address</label>
-            <input type="text" class="form-control" id="address" placeholder="Street address or landmark">
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-bold">Select Location on Map</label>
-            <p class="text-muted small">Click on the map to mark the exact location</p>
-            <div id="locationMap"></div>
-            <div id="locationCoords" class="mt-2 text-muted small">No location selected</div>
-          </div>
-        </div>
+    // 🔗 Supabase credentials
+    const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkandyZ2N5aHRyeGZqdmhvbmZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4NjE5NTcsImV4cCI6MjA3NTQzNzk1N30.OQTaEiyyN9CyXdV7zl0fcYqpPCq437CkRjlZKG3RDzw';
 
-        <!-- Photo Upload -->
-        <div class="form-section">
-          <h3 class="mb-4">Photo Evidence *</h3>
-          <div class="mb-3">
-            <input class="form-control" type="file" id="photo" accept="image/*" required>
-            <div class="form-text">Upload a photo showing the issue (max 5MB)</div>
-          </div>
-        </div>
+    // ✅ Initialize client
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-        <!-- Submit Button -->
-        <div class="text-center">
-          <button type="submit" class="btn btn-primary btn-lg px-5">Submit Report</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</section>
+    console.log("✅ Supabase initialized");
 
-<!-- JS Libraries -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    // 📝 Handle form submission
+    document.getElementById("reportForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      document.getElementById("status").textContent = "Submitting...";
 
-<!-- Supabase SDK -->
-<script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.31.0/dist/supabase-js.min.js';
-
-  const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
-  const supabaseKey = 'YOUR_ANON_KEY_HERE'; // Replace with your Supabase anon key
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  // Initialize Map
-  const locationMap = L.map('locationMap').setView([25.5788, 91.8933], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(locationMap);
-
-  let selectedLocation = null;
-  let locationMarker = null;
-
-  locationMap.on('click', (e) => {
-    selectedLocation = e.latlng;
-    if(locationMarker) locationMap.removeLayer(locationMarker);
-    locationMarker = L.marker(selectedLocation).addTo(locationMap);
-    document.getElementById('locationCoords').textContent = 
-      `Latitude: ${selectedLocation.lat.toFixed(6)}, Longitude: ${selectedLocation.lng.toFixed(6)}`;
-  });
-
-  document.getElementById('reportForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
-
-    if(!selectedLocation){
-      alert('Please select a location on the map');
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit Report';
-      return;
-    }
-
-    const photoFile = document.getElementById('photo').files[0];
-    if(!photoFile){
-      alert('Please upload a photo of the issue');
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit Report';
-      return;
-    }
-
-    try{
-      // Upload photo to Supabase Storage
-      const fileExt = photoFile.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('reports').upload(fileName, photoFile, { cacheControl: '3600', upsert: false });
-      if(uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage.from('reports').getPublicUrl(fileName);
-
-      const formData = {
-        title: document.getElementById('title').value,
-        description: document.getElementById('description').value,
-        latitude: selectedLocation.lat,
-        longitude: selectedLocation.lng,
-        address: document.getElementById('address').value,
-        photo_url: urlData.publicUrl,
-        status: 'Reported',
-        created_at: new Date().toISOString()
+      const reportData = {
+        title: document.getElementById("title").value,
+        description: document.getElementById("description").value,
+        latitude: document.getElementById("latitude").value || null,
+        longitude: document.getElementById("longitude").value || null,
+        user_email: document.getElementById("email").value || null,
+        photo_url: document.getElementById("photo_url").value,
+        status: "Pending"
       };
 
-      const { error } = await supabase.from('report').insert([formData]);
-      if(error) throw error;
+      const { data, error } = await supabase.from("report").insert([reportData]);
 
-      alert('Report submitted successfully!');
-      e.target.reset();
-      if(locationMarker) locationMap.removeLayer(locationMarker);
-      locationMarker = null;
-      selectedLocation = null;
-      document.getElementById('locationCoords').textContent = 'No location selected';
-    } catch(err){
-      console.error(err);
-      alert('Error submitting report. Check console for details.');
-    } finally{
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit Report';
-    }
-  });
-</script>
-
+      if (error) {
+        console.error(error);
+        document.getElementById("status").textContent = "❌ Error: " + error.message;
+      } else {
+        console.log("✅ Report submitted:", data);
+        document.getElementById("status").textContent = "✅ Report submitted successfully!";
+        document.getElementById("reportForm").reset();
+      }
+    });
+  </script>
 </body>
 </html>
