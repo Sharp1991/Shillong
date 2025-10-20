@@ -1,103 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Report an Issue | FixMyCity</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixMyCity - Report Issue</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    form {
-      max-width: 500px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input, textarea, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    button {
-      background: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    #status {
-      text-align: center;
-      font-weight: bold;
-      color: green;
-    }
+    .report-form { max-width: 800px; margin: 0 auto; }
+    .form-section { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+    #locationMap { height: 300px; border-radius: 8px; margin-top: 1rem; }
   </style>
 </head>
 <body>
-  <h1>Report an Issue</h1>
 
-  <form id="reportForm">
-    <input type="text" id="title" placeholder="Title of issue" required />
-    <textarea id="description" placeholder="Describe the problem..." required></textarea>
-    <input type="text" id="latitude" placeholder="Latitude (optional)" />
-    <input type="text" id="longitude" placeholder="Longitude (optional)" />
-    <input type="email" id="email" placeholder="Your email (optional)" />
-    <input type="url" id="photo_url" placeholder="Photo URL (required)" required />
-    <button type="submit">Submit Report</button>
-  </form>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="index.html">FixMyCity</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link active" href="report.html">Report</a></li>
+        <li class="nav-item"><a class="nav-link" href="map.html">Map</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
 
-  <p id="status"></p>
+<!-- Report Form Section -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="report-form">
+      <div class="text-center mb-5">
+        <h1 class="fw-bold">Report an Issue</h1>
+        <p class="lead">Help us improve our city by reporting problems in your neighborhood</p>
+      </div>
 
-  <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+      <form id="reportForm">
+        <!-- Issue Details -->
+        <div class="form-section">
+          <h3 class="mb-4">Issue Details</h3>
+          <div class="mb-3">
+            <label for="title" class="form-label fw-bold">Title</label>
+            <input type="text" class="form-control" id="title" placeholder="Brief description" required>
+          </div>
+          <div class="mb-3">
+            <label for="description" class="form-label fw-bold">Description</label>
+            <textarea class="form-control" id="description" rows="4" placeholder="Detailed info" required></textarea>
+          </div>
+        </div>
 
-    // 🔗 Supabase credentials
-    const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkandyZ2N5aHRyeGZqdmhvbmZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4NjE5NTcsImV4cCI6MjA3NTQzNzk1N30.OQTaEiyyN9CyXdV7zl0fcYqpPCq437CkRjlZKG3RDzw';
+        <!-- Location -->
+        <div class="form-section">
+          <h3 class="mb-4">Location</h3>
+          <div class="mb-3">
+            <label for="latitude" class="form-label fw-bold">Latitude</label>
+            <input type="number" class="form-control" id="latitude" placeholder="Click map to fill" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="longitude" class="form-label fw-bold">Longitude</label>
+            <input type="number" class="form-control" id="longitude" placeholder="Click map to fill" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Select Location on Map</label>
+            <div id="locationMap"></div>
+          </div>
+        </div>
 
-    // ✅ Initialize client
-    const supabase = createClient(supabaseUrl, supabaseKey);
+        <!-- Photo Upload -->
+        <div class="form-section">
+          <h3 class="mb-4">Photo Evidence</h3>
+          <div class="mb-3">
+            <input class="form-control" type="file" id="photo" accept="image/*" required>
+          </div>
+        </div>
 
-    console.log("✅ Supabase initialized");
+        <!-- Submit Button -->
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary btn-lg px-5">Submit Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
 
-    // 📝 Handle form submission
-    document.getElementById("reportForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      document.getElementById("status").textContent = "Submitting...";
+<!-- JS Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-      const reportData = {
-        title: document.getElementById("title").value,
-        description: document.getElementById("description").value,
-        latitude: document.getElementById("latitude").value || null,
-        longitude: document.getElementById("longitude").value || null,
-        user_email: document.getElementById("email").value || null,
-        photo_url: document.getElementById("photo_url").value,
-        status: "Pending"
-      };
+<!-- Supabase SDK -->
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-      const { data, error } = await supabase.from("report").insert([reportData]);
+  const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
+  const supabaseKey = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK'; // your public anon key
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
-      if (error) {
-        console.error(error);
-        document.getElementById("status").textContent = "❌ Error: " + error.message;
-      } else {
-        console.log("✅ Report submitted:", data);
-        document.getElementById("status").textContent = "✅ Report submitted successfully!";
-        document.getElementById("reportForm").reset();
-      }
-    });
-  </script>
+  // Initialize Map
+  const locationMap = L.map('locationMap').setView([25.5788, 91.8933], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(locationMap);
+
+  let locationMarker = null;
+
+  // Load existing reports as markers
+  async function loadExistingReports() {
+    try {
+      const { data: reports, error } = await supabase.from('report').select('*');
+      if(error) throw error;
+
+      reports.forEach(r => {
+        if(r.latitude && r.longitude){
+          let color = r.status === 'Fixed' ? 'green' : 'red';
+          L.circleMarker([r.latitude, r.longitude], { color, radius: 6, fillOpacity: 0.8 })
+            .bindPopup(`<b>${r.title}</b><br>${r.description}`)
+            .addTo(locationMap);
+        }
+      });
+    } catch(err){
+      console.error('Error loading existing reports:', err);
+    }
+  }
+  loadExistingReports();
+
+  // Map click for new report
+  locationMap.on('click', (e) => {
+    const { lat, lng } = e.latlng;
+    document.getElementById('latitude').value = lat.toFixed(6);
+    document.getElementById('longitude').value = lng.toFixed(6);
+
+    if(locationMarker) locationMap.removeLayer(locationMarker);
+    locationMarker = L.marker([lat, lng]).addTo(locationMap);
+  });
+
+  // Handle form submission
+  document.getElementById('reportForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    try {
+      const title = document.getElementById('title').value;
+      const description = document.getElementById('description').value;
+      const lat = parseFloat(document.getElementById('latitude').value);
+      const lng = parseFloat(document.getElementById('longitude').value);
+      const photoFile = document.getElementById('photo').files[0];
+
+      if(!lat || !lng) throw new Error('Please select a location on the map');
+      if(!photoFile) throw new Error('Please upload a photo');
+
+      // Upload photo
+      const fileExt = photoFile.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('reports').upload(fileName, photoFile);
+      if(uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from('reports').getPublicUrl(fileName);
+      const photo_url = urlData.publicUrl;
+
+      // Insert into Supabase
+      const { error } = await supabase.from('report').insert([{
+        title,
+        description,
+        latitude: lat,
+        longitude: lng,
+        photo_url,
+        status: 'Reported',
+        created_at: new Date().toISOString()
+      }]);
+
+      if(error) throw error;
+
+      alert('Report submitted successfully!');
+      e.target.reset();
+      if(locationMarker) locationMap.removeLayer(locationMarker);
+      locationMarker = null;
+
+      // Reload existing reports
+      loadExistingReports();
+
+    } catch(err) {
+      console.error(err);
+      alert(err.message || 'Error submitting report');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Report';
+    }
+  });
+</script>
+
 </body>
 </html>
