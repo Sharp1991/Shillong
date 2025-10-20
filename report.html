@@ -110,7 +110,7 @@
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
   const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
-  const supabaseKey = 'PASTE_YOUR_ANON_KEY_HERE';
+  const supabaseKey = 'YOUR_ANON_KEY_HERE'; // Replace with your anon key
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // Initialize Map
@@ -153,7 +153,7 @@
       // Upload photo to Supabase Storage
       const fileExt = photoFile.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      const { data: uploadData, error: uploadError } = await supabase
+      const { error: uploadError } = await supabase
         .storage
         .from('reports')
         .upload(fileName, photoFile);
@@ -177,7 +177,7 @@
         created_at: new Date().toISOString()
       };
 
-      const { data, error } = await supabase.from('reports').insert([formData]);
+      const { error } = await supabase.from('report').insert([formData]);
       if(error) throw error;
 
       alert('Report submitted successfully!');
