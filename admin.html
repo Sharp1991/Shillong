@@ -3,136 +3,86 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FixMyCity - Admin Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <title>Admin Login - Fix My City</title>
   <style>
-    body { background-color: #f5f6fa; }
-    .container { margin-top: 40px; }
-    table img { width: 100px; height: auto; border-radius: 6px; cursor: pointer; }
-    .status-select { width: 150px; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      width: 320px;
+      text-align: center;
+    }
+    h2 {
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      background-color: #007bff;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
-    <a class="navbar-brand fw-bold" href="index.html">FixMyCity Admin</a>
-    <button class="btn btn-outline-light ms-auto" id="refreshBtn">Refresh</button>
+  <div class="login-box">
+    <h2>Admin Login</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
   </div>
-</nav>
 
-<div class="container">
-  <h2 class="text-center mb-4">Reported Issues</h2>
-  <div class="table-responsive">
-    <table class="table table-bordered align-middle">
-      <thead class="table-dark">
-        <tr>
-          <th>ID</th>
-          <th>Photo</th>
-          <th>Title</th>
-          <th>Description</th>
-          <th>Latitude</th>
-          <th>Longitude</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="reportTableBody"></tbody>
-    </table>
-  </div>
-</div>
+  <script type="module">
+    // 👇 Replace these with your actual Supabase credentials
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-<!-- Fullscreen Image Modal -->
-<div class="modal fade" id="imageModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-    <div class="modal-content bg-transparent border-0">
-      <img id="modalImage" src="" class="img-fluid mx-auto d-block rounded shadow" alt="Full image">
-    </div>
-  </div>
-</div>
+    const SUPABASE_URL = 'https://YOUR_PROJECT_URL.supabase.co'
+    const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY'
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    // 👇 Hardcoded admin credentials for testing
+    const ADMIN_USERNAME = 'admin'
+    const ADMIN_PASSWORD = 'P@ss!FixMyCity2025' // You can change this anytime
 
-  // 🔑 Supabase credentials
-  const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
-  const supabaseKey = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK';
-  const supabase = createClient(supabaseUrl, supabaseKey);
+    const form = document.getElementById('loginForm')
 
-  const tableBody = document.getElementById('reportTableBody');
-  const refreshBtn = document.getElementById('refreshBtn');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const username = document.getElementById('username').value.trim()
+      const password = document.getElementById('password').value.trim()
 
-  async function fetchReports() {
-    tableBody.innerHTML = '<tr><td colspan="8" class="text-center">Loading...</td></tr>';
-
-    const { data, error } = await supabase.from('report').select('*').order('created_at', { ascending: false });
-    if (error) {
-      console.error('Error fetching reports:', error);
-      tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading reports</td></tr>';
-      return;
-    }
-
-    tableBody.innerHTML = '';
-
-    data.forEach((report) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${report.id}</td>
-        <td><img src="${report.photo_url}" alt="photo" onclick="showImage('${report.photo_url}')"></td>
-        <td>${report.title}</td>
-        <td>${report.description}</td>
-        <td>${report.latitude.toFixed(5)}</td>
-        <td>${report.longitude.toFixed(5)}</td>
-        <td>
-          <select class="form-select status-select" onchange="updateStatus(${report.id}, this.value)">
-            <option ${report.status === 'Reported' ? 'selected' : ''}>Reported</option>
-            <option ${report.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-            <option ${report.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
-          </select>
-        </td>
-        <td>
-          <button class="btn btn-sm btn-danger" onclick="deleteReport(${report.id})">Delete</button>
-        </td>
-      `;
-      tableBody.appendChild(row);
-    });
-  }
-
-  // 🧾 Update report status
-  window.updateStatus = async (id, newStatus) => {
-    const { error } = await supabase.from('report').update({ status: newStatus }).eq('id', id);
-    if (error) {
-      alert('Error updating status');
-      console.error(error);
-    } else {
-      alert('Status updated successfully!');
-    }
-  };
-
-  // 🗑️ Delete report
-  window.deleteReport = async (id) => {
-    if (!confirm('Are you sure you want to delete this report?')) return;
-    const { error } = await supabase.from('report').delete().eq('id', id);
-    if (error) {
-      alert('Error deleting report');
-      console.error(error);
-    } else {
-      alert('Report deleted successfully!');
-      fetchReports();
-    }
-  };
-
-  // 🖼️ Show image in modal
-  window.showImage = (url) => {
-    document.getElementById('modalImage').src = url;
-    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
-    modal.show();
-  };
-
-  refreshBtn.addEventListener('click', fetchReports);
-  fetchReports(); // initial load
-</script>
-
+      if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        alert('✅ Login successful!')
+        localStorage.setItem('adminAuth', 'true')
+        window.location.href = 'admin_dashboard.html'
+      } else {
+        alert('❌ Invalid username or password')
+      }
+    })
+  </script>
 </body>
 </html>
