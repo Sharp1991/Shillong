@@ -4,10 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FixMyCity - Home</title>
+
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
   <style>
     :root {
       --primary: #0d6efd;
@@ -22,17 +24,27 @@
       color: white;
       padding: 100px 0;
     }
-    
+
+    .carousel-item img {
+      height: 300px;
+      object-fit: cover;
+      border-radius: 10px;
+      width: 100%;
+    }
+
+    .carousel-caption {
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+      padding: 15px;
+    }
+
     .stat-card {
       border-radius: 10px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       transition: transform 0.3s ease;
     }
-    
-    .stat-card:hover {
-      transform: translateY(-5px);
-    }
-    
+    .stat-card:hover { transform: translateY(-5px); }
+
     .feature-icon {
       width: 60px;
       height: 60px;
@@ -43,7 +55,7 @@
       margin: 0 auto 1rem;
       font-size: 1.5rem;
     }
-    
+
     .icon-report { background: #e3f2fd; color: var(--primary); }
     .icon-map { background: #e8f5e8; color: var(--success); }
     .icon-track { background: #fff3cd; color: var(--warning); }
@@ -68,20 +80,54 @@
     </div>
   </nav>
 
-  <!-- Hero Section -->
+  <!-- Hero Section with Carousel -->
   <section class="hero-section">
     <div class="container">
       <div class="row align-items-center">
         <div class="col-lg-6">
-          <h1 class="display-4 fw-bold mb-4">Together, let's make our city better</h1>
-          <p class="lead mb-4">Report problems in your neighborhood — we'll map, track & fix them.</p>
+          <h1 class="display-4 fw-bold mb-4"> Together lets make Shillong Cleaner, Safer and Smarter</h1>
+          <p class="lead mb-4">Report problems in your locality </p>
           <div class="d-flex gap-3">
             <a href="report.html" class="btn btn-light btn-lg">Report an Issue</a>
             <a href="map.html" class="btn btn-outline-light btn-lg">View Map</a>
           </div>
         </div>
+
         <div class="col-lg-6 mt-5 mt-lg-0">
-          <div id="homeMap" style="height: 300px; border-radius: 10px;"></div>
+          <!-- Carousel replaces map -->
+          <div id="cityCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+              <div class="carousel-item active">
+                <img src="images/slide1.jpg" class="d-block w-100" alt="Smart City">
+                <div class="carousel-caption">
+                  <h5>Building a Smarter City</h5>
+                  <p>Together we identify, fix, and improve urban life.</p>
+                </div>
+              </div>
+              <div class="carousel-item">
+                <img src="images/slide2.jpg" class="d-block w-100" alt="Community Power">
+                <div class="carousel-caption">
+                  <h5>Community in Action</h5>
+                  <p>Because change starts with one report.</p>
+                </div>
+              </div>
+              <div class="carousel-item">
+                <img src="images/slide3.jpg" class="d-block w-100" alt="Future Ready">
+                <div class="carousel-caption">
+                  <h5>Shaping the Future</h5>
+                  <p>Data-driven approach to cleaner, safer cities.</p>
+                </div>
+              </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#cityCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#cityCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -114,90 +160,40 @@
     </div>
   </section>
 
-  <!-- Features Section -->
-  <section class="py-5 bg-light">
+  <!-- Info Section -->
+  <section class="py-5 bg-light text-center">
     <div class="container">
-      <div class="row">
-        <div class="col-md-4 text-center mb-4">
-          <div class="feature-icon icon-report">
-            <i class="fas fa-flag"></i>
-          </div>
-          <h4>Report Issues</h4>
-          <p>Easily report potholes, broken street lights, garbage problems and more.</p>
-        </div>
-        <div class="col-md-4 text-center mb-4">
-          <div class="feature-icon icon-map">
-            <i class="fas fa-map-marked-alt"></i>
-          </div>
-          <h4>View on Map</h4>
-          <p>See all reported issues in your neighborhood on an interactive map.</p>
-        </div>
-        <div class="col-md-4 text-center mb-4">
-          <div class="feature-icon icon-track">
-            <i class="fas fa-tasks"></i>
-          </div>
-          <h4>Track Progress</h4>
-          <p>Monitor the status of your reports and see when they get resolved.</p>
-        </div>
-      </div>
+      <h3 class="fw-bold mb-3">About FixMyCity</h3>
+      <p class="lead mx-auto" style="max-width: 800px;">
+        FixMyCity is a citizen-led initiative designed to empower communities to report and track urban issues like potholes, broken lights, and garbage dumps. 
+        Every report helps make cities cleaner, smarter, and more connected.
+      </p>
+      <p class="mt-4 text-muted">Powered by <strong>Mega Infotech </strong> — data-driven solutions for better governance.</p>
     </div>
   </section>
 
-  <!-- JS Libraries -->
+  <!-- JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Supabase SDK -->
+  <!-- Supabase SDK for statistics -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
     const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
-    const supabaseKey = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK'; // your anon key
+    const supabaseKey = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Initialize Home Map
-    const homeMap = L.map('homeMap').setView([25.5788, 91.8933], 13); 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(homeMap);
-
     async function loadStatistics() {
-      try {
-        const { data: reports, error } = await supabase
-          .from('report') // match your table name
-          .select('*');
+      const { data: reports, error } = await supabase.from('report').select('*');
+      if (error) return console.error(error);
 
-        if(error) throw error;
+      const total = reports.length;
+      const fixed = reports.filter(r => r.status === 'Fixed').length;
+      const pending = total - fixed;
 
-        const total = reports.length;
-        const fixed = reports.filter(r => r.status === 'Fixed').length;
-        const pending = total - fixed;
-
-        document.getElementById('totalReports').textContent = total;
-        document.getElementById('pendingReports').textContent = pending;
-        document.getElementById('fixedReports').textContent = fixed;
-
-        reports.forEach(r => {
-          if(r.lat && r.lng){
-            const color = r.status === 'Fixed' ? 'green' : (r.status === 'In Progress' ? 'orange' : 'red');
-            L.circleMarker([r.lat, r.lng], {
-              color: color,
-              radius: 6,
-              fillOpacity: 0.8
-            }).addTo(homeMap)
-              .bindPopup(`<b>${r.title}</b><br>${r.category}<br>Status: ${r.status}`);
-          }
-        });
-
-      } catch(err){
-        console.error('Error loading statistics:', err);
-        document.getElementById('totalReports').textContent = "N/A";
-        document.getElementById('pendingReports').textContent = "N/A";
-        document.getElementById('fixedReports').textContent = "N/A";
-      }
+      document.getElementById('totalReports').textContent = total;
+      document.getElementById('pendingReports').textContent = pending;
+      document.getElementById('fixedReports').textContent = fixed;
     }
-
     loadStatistics();
   </script>
 </body>
