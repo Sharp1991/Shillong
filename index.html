@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FixMyCity - Shillong</title>
 
-  <!-- Bootstrap & Leaflet -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-  <!-- Chart.js for AI analytics -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
       --primary: #0d6efd;
+      --secondary: #6c757d;
+      --success: #198754;
+      --warning: #ffc107;
+      --danger: #dc3545;
     }
 
     .hero-section {
@@ -25,43 +26,45 @@
       background-size: cover;
     }
 
-    .stat-card, .ai-card {
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      background: white;
-      padding: 20px;
+    .hero-section h1 { font-size: 2.8rem; }
+    .hero-section p { font-size: 1.25rem; }
+
+    .btn-light:hover { background-color: #eaf6fc; color: #0d6efd; }
+    .btn-outline-light:hover { background-color: white; color: #3498db; }
+
+    .stat-card {
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
     }
+    .stat-card:hover { transform: translateY(-5px); }
 
     .ai-card {
-      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      background: white;
+      padding: 20px;
     }
 
     footer {
       background: #f8f9fa;
       padding: 20px 0;
     }
-
-    #aiChartContainer {
-      margin-top: 2rem;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      padding: 1.5rem;
-    }
   </style>
 </head>
 
 <body>
+
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="#">FixMyCity</a>
+      <a class="navbar-brand fw-bold" href="index.html">FixMyCity</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+          <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="report.html">Report</a></li>
           <li class="nav-item"><a class="nav-link" href="map.html">Map</a></li>
         </ul>
@@ -69,18 +72,38 @@
     </div>
   </nav>
 
-  <!-- Hero -->
+  <!-- Hero Section -->
   <section class="hero-section text-center">
     <div class="container">
       <h1 class="fw-bold mb-3">Make Shillong a better city</h1>
-      <p class="lead mb-4">
-        Report problems in your neighborhood — potholes, streetlights, garbage, and more — 
-        and track the city's progress in fixing them.
-      </p>
+      <p class="lead mb-4">Report problems in your neighborhood — potholes, streetlights, garbage, and more — and track the city's progress in fixing them.</p>
       <div class="d-flex justify-content-center gap-3">
         <a href="report.html" class="btn btn-light btn-lg">Report an Issue</a>
         <a href="map.html" class="btn btn-outline-light btn-lg">View Reports</a>
       </div>
+    </div>
+  </section>
+
+  <!-- Slider Section -->
+  <section class="slider-section container my-5">
+    <div id="citySlider" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner rounded shadow">
+        <div class="carousel-item active">
+          <img src="images/slide1.jpg" class="d-block w-100" alt="City Overview">
+        </div>
+        <div class="carousel-item">
+          <img src="images/slide2.jpg" class="d-block w-100" alt="Before Fix">
+        </div>
+        <div class="carousel-item">
+          <img src="images/slide3.jpg" class="d-block w-100" alt="After Fix">
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#citySlider" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#citySlider" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+      </button>
     </div>
   </section>
 
@@ -90,19 +113,19 @@
       <h2 class="text-center mb-5 fw-bold">City Statistics</h2>
       <div class="row">
         <div class="col-md-4 mb-4">
-          <div class="stat-card text-center p-4">
+          <div class="stat-card text-center p-4 bg-white">
             <h3 class="text-primary fw-bold" id="totalReports">0</h3>
             <p class="text-muted">Total Reports</p>
           </div>
         </div>
         <div class="col-md-4 mb-4">
-          <div class="stat-card text-center p-4">
+          <div class="stat-card text-center p-4 bg-white">
             <h3 class="text-warning fw-bold" id="pendingReports">0</h3>
             <p class="text-muted">Pending</p>
           </div>
         </div>
         <div class="col-md-4 mb-4">
-          <div class="stat-card text-center p-4">
+          <div class="stat-card text-center p-4 bg-white">
             <h3 class="text-success fw-bold" id="fixedReports">0</h3>
             <p class="text-muted">Fixed</p>
           </div>
@@ -133,11 +156,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Chart -->
-      <div id="aiChartContainer">
-        <canvas id="aiChart"></canvas>
-      </div>
     </div>
   </section>
 
@@ -146,86 +164,46 @@
     <p class="mb-0">Powered by <strong>Mega Infotech</strong> — Empowering cities with smart data solutions.</p>
   </footer>
 
-  <!-- JS -->
+  <!-- JS Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Supabase + Chart Script -->
+  <!-- Supabase + Analytics Script -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
     const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
     const supabaseKey = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK';
     const supabase = createClient(supabaseUrl, supabaseKey);
-
-    let aiChart;
 
     async function loadStatistics() {
       try {
         const { data: reports, error } = await supabase.from('report').select('*');
         if (error) throw error;
 
-        // City stats
-        const total = reports.length;
-        const fixed = reports.filter(r => r.status === 'Fixed').length;
-        const pending = total - fixed;
+        const totalReports = reports.length;
+        const fixedReports = reports.filter(r => r.status === 'Fixed').length;
+        const pendingReports = totalReports - fixedReports;
 
-        document.getElementById('totalReports').textContent = total;
-        document.getElementById('fixedReports').textContent = fixed;
-        document.getElementById('pendingReports').textContent = pending;
+        document.getElementById('totalReports').textContent = totalReports;
+        document.getElementById('fixedReports').textContent = fixedReports;
+        document.getElementById('pendingReports').textContent = pendingReports;
 
-        // AI stats
-        const potholes = reports.filter(r => r.pothole_size);
-        const garbage = reports.filter(r => r.garbage_size);
+        // --- AI Analytics ---
+        const potholes = reports.filter(r => r.pothole_size || r.pothole);
+        const garbage = reports.filter(r => r.garbage_size || r.garbage);
 
-        const avg = (arr, key) => arr.length ? (arr.reduce((a,b)=>a+Number(b[key]||0),0)/arr.length).toFixed(2):0;
-        const max = (arr, key) => arr.length ? Math.max(...arr.map(r => Number(r[key]||0))).toFixed(2):0;
+        const avg = (arr, key) => arr.length ? (arr.reduce((a, b) => a + Number(b[key] || 0), 0) / arr.length).toFixed(2) : 0;
+        const max = (arr, key) => arr.length ? Math.max(...arr.map(r => Number(r[key] || 0))).toFixed(2) : 0;
 
-        const avgP = avg(potholes, 'pothole_size');
-        const maxP = max(potholes, 'pothole_size');
-        const avgG = avg(garbage, 'garbage_size');
-        const maxG = max(garbage, 'garbage_size');
-
-        document.getElementById('avgPotholeSize').textContent = avgP + ' m²';
-        document.getElementById('maxPotholeSize').textContent = maxP + ' m²';
+        document.getElementById('avgPotholeSize').textContent = avg(potholes, 'pothole_size') + ' m²';
+        document.getElementById('maxPotholeSize').textContent = max(potholes, 'pothole_size') + ' m²';
         document.getElementById('potholeCount').textContent = potholes.length;
 
-        document.getElementById('avgGarbageSize').textContent = avgG + ' m²';
-        document.getElementById('maxGarbageSize').textContent = maxG + ' m²';
+        document.getElementById('avgGarbageSize').textContent = avg(garbage, 'garbage_size') + ' m²';
+        document.getElementById('maxGarbageSize').textContent = max(garbage, 'garbage_size') + ' m²';
         document.getElementById('garbageCount').textContent = garbage.length;
 
-        // Chart
-        const ctx = document.getElementById('aiChart').getContext('2d');
-        if (aiChart) aiChart.destroy();
-        aiChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: ['Avg Pothole Size', 'Max Pothole', 'Avg Garbage Size', 'Max Garbage'],
-            datasets: [{
-              label: 'AI Analysis (m²)',
-              data: [avgP, maxP, avgG, maxG],
-              backgroundColor: ['#007bff', '#0d6efd', '#28a745', '#20c997'],
-              borderRadius: 6,
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { display: false },
-              title: {
-                display: true,
-                text: 'AI Reported Data Overview',
-                color: '#002b5c',
-                font: { size: 16, weight: 'bold' }
-              }
-            },
-            scales: {
-              y: { beginAtZero: true }
-            }
-          }
-        });
-
       } catch (err) {
-        console.error('Error:', err);
+        console.error('Error loading statistics:', err);
       }
     }
 
