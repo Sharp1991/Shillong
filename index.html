@@ -1,58 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>FixMyCity - Shillong</title>
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap CSS & Leaflet CSS (kept in case you use map pages) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    :root {
-      --primary: #0d6efd;
-      --secondary: #6c757d;
-      --success: #198754;
-      --warning: #ffc107;
-      --danger: #dc3545;
+    :root{--primary:#0d6efd;--success:#198754}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    .hero-section{
+      background:linear-gradient(135deg,#a9c9ff 0%,#5dade2 50%,#3498db 100%);
+      color:#fff;padding:100px 0;background-attachment:fixed;background-size:cover;text-align:center
     }
-
-    .hero-section {
-      background: linear-gradient(135deg, #a9c9ff 0%, #5dade2 50%, #3498db 100%);
-      color: white;
-      padding: 100px 0;
-      background-attachment: fixed;
-      background-size: cover;
-    }
-
-    .hero-section h1 { font-size: 2.8rem; }
-    .hero-section p { font-size: 1.25rem; }
-
-    .btn-light:hover { background-color: #eaf6fc; color: #0d6efd; }
-    .btn-outline-light:hover { background-color: white; color: #3498db; }
-
-    .stat-card {
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease;
-    }
-    .stat-card:hover { transform: translateY(-5px); }
-
-    .ai-card {
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      background: white;
-      padding: 20px;
-    }
-
-    footer {
-      background: #f8f9fa;
-      padding: 20px 0;
-    }
+    .hero-section h1{font-size:2.8rem}
+    .hero-section p{font-size:1.15rem}
+    .stat-card,.ai-card{border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.08);background:#fff;padding:20px}
+    .slider-section .carousel-inner img{border-radius:10px}
+    #aiChartContainer{margin-top:1.5rem;background:#fff;border-radius:12px;padding:16px;box-shadow:0 4px 10px rgba(0,0,0,0.06)}
+    footer{background:#f8f9fa;padding:20px 0;text-align:center}
   </style>
 </head>
-
 <body>
 
   <!-- Navbar -->
@@ -73,7 +47,7 @@
   </nav>
 
   <!-- Hero Section -->
-  <section class="hero-section text-center">
+  <section class="hero-section">
     <div class="container">
       <h1 class="fw-bold mb-3">Make Shillong a better city</h1>
       <p class="lead mb-4">Report problems in your neighborhood — potholes, streetlights, garbage, and more — and track the city's progress in fixing them.</p>
@@ -84,7 +58,7 @@
     </div>
   </section>
 
-  <!-- Slider Section -->
+  <!-- Slider Section (restored) -->
   <section class="slider-section container my-5">
     <div id="citySlider" class="carousel slide" data-bs-ride="carousel">
       <div class="carousel-inner rounded shadow">
@@ -113,21 +87,21 @@
       <h2 class="text-center mb-5 fw-bold">City Statistics</h2>
       <div class="row">
         <div class="col-md-4 mb-4">
-          <div class="stat-card text-center p-4 bg-white">
+          <div class="stat-card text-center">
             <h3 class="text-primary fw-bold" id="totalReports">0</h3>
-            <p class="text-muted">Total Reports</p>
+            <p class="text-muted mb-0">Total Reports</p>
           </div>
         </div>
         <div class="col-md-4 mb-4">
-          <div class="stat-card text-center p-4 bg-white">
+          <div class="stat-card text-center">
             <h3 class="text-warning fw-bold" id="pendingReports">0</h3>
-            <p class="text-muted">Pending</p>
+            <p class="text-muted mb-0">Pending</p>
           </div>
         </div>
         <div class="col-md-4 mb-4">
-          <div class="stat-card text-center p-4 bg-white">
+          <div class="stat-card text-center">
             <h3 class="text-success fw-bold" id="fixedReports">0</h3>
-            <p class="text-muted">Fixed</p>
+            <p class="text-muted mb-0">Fixed</p>
           </div>
         </div>
       </div>
@@ -138,23 +112,30 @@
   <section class="py-5 bg-light">
     <div class="container">
       <h2 class="text-center mb-5 fw-bold">AI Data Analytics</h2>
-      <div class="row">
-        <div class="col-md-6 mb-4">
+
+      <div class="row mb-4">
+        <div class="col-md-6 mb-3">
           <div class="ai-card">
             <h5 class="text-primary fw-bold">Pothole Detection Summary</h5>
-            <p class="text-muted mb-2">Average pothole size detected: <span id="avgPotholeSize">Loading...</span></p>
-            <p class="text-muted mb-2">Largest pothole size: <span id="maxPotholeSize">Loading...</span></p>
-            <p class="text-muted">Total potholes analyzed: <span id="potholeCount">Loading...</span></p>
+            <p class="mb-1 text-muted">Average pothole size detected: <strong id="avgPotholeSize">Loading...</strong></p>
+            <p class="mb-1 text-muted">Largest pothole size: <strong id="maxPotholeSize">Loading...</strong></p>
+            <p class="mb-0 text-muted">Total potholes analyzed: <strong id="potholeCount">Loading...</strong></p>
           </div>
         </div>
-        <div class="col-md-6 mb-4">
+
+        <div class="col-md-6 mb-3">
           <div class="ai-card">
             <h5 class="text-success fw-bold">Garbage Detection Summary</h5>
-            <p class="text-muted mb-2">Average garbage area detected: <span id="avgGarbageSize">Loading...</span></p>
-            <p class="text-muted mb-2">Largest garbage pile: <span id="maxGarbageSize">Loading...</span></p>
-            <p class="text-muted">Total garbage reports: <span id="garbageCount">Loading...</span></p>
+            <p class="mb-1 text-muted">Average garbage area detected: <strong id="avgGarbageSize">Loading...</strong></p>
+            <p class="mb-1 text-muted">Largest garbage pile: <strong id="maxGarbageSize">Loading...</strong></p>
+            <p class="mb-0 text-muted">Total garbage reports: <strong id="garbageCount">Loading...</strong></p>
           </div>
         </div>
+      </div>
+
+      <!-- Chart: shows Avg Pothole / Max Pothole / Avg Garbage / Max Garbage -->
+      <div id="aiChartContainer">
+        <canvas id="aiChart"></canvas>
       </div>
     </div>
   </section>
@@ -167,46 +148,87 @@
   <!-- JS Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Supabase + Analytics Script -->
+  <!-- Supabase + AI analytics script -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    // >>> UPDATE: your supabase credentials are already here
     const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
     const supabaseKey = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK';
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    let aiChart = null;
+
+    function safeNum(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
 
     async function loadStatistics() {
       try {
         const { data: reports, error } = await supabase.from('report').select('*');
         if (error) throw error;
 
+        // --- City stats ---
         const totalReports = reports.length;
-        const fixedReports = reports.filter(r => r.status === 'Fixed').length;
+        const fixedReports = reports.filter(r => String(r.status || '').toLowerCase() === 'fixed').length;
         const pendingReports = totalReports - fixedReports;
 
         document.getElementById('totalReports').textContent = totalReports;
         document.getElementById('fixedReports').textContent = fixedReports;
         document.getElementById('pendingReports').textContent = pendingReports;
 
-        // --- AI Analytics ---
-        const potholes = reports.filter(r => r.pothole_size || r.pothole);
-        const garbage = reports.filter(r => r.garbage_size || r.garbage);
+        // --- AI analytics: pick possible field names defensively ---
+        const potholeCandidates = reports.filter(r => r.pothole_size || r.pothole || r.size || r.potholeSize);
+        const garbageCandidates = reports.filter(r => r.garbage_size || r.garbage || r.garbageSize || r.size_garbage);
 
-        const avg = (arr, key) => arr.length ? (arr.reduce((a, b) => a + Number(b[key] || 0), 0) / arr.length).toFixed(2) : 0;
-        const max = (arr, key) => arr.length ? Math.max(...arr.map(r => Number(r[key] || 0))).toFixed(2) : 0;
+        const potholeSizes = potholeCandidates.map(r => safeNum(r.pothole_size ?? r.pothole ?? r.size ?? r.potholeSize));
+        const garbageSizes = garbageCandidates.map(r => safeNum(r.garbage_size ?? r.garbage ?? r.garbageSize ?? r.size_garbage));
 
-        document.getElementById('avgPotholeSize').textContent = avg(potholes, 'pothole_size') + ' m²';
-        document.getElementById('maxPotholeSize').textContent = max(potholes, 'pothole_size') + ' m²';
-        document.getElementById('potholeCount').textContent = potholes.length;
+        const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(2) : '0.00';
+        const max = arr => arr.length ? Math.max(...arr).toFixed(2) : '0.00';
 
-        document.getElementById('avgGarbageSize').textContent = avg(garbage, 'garbage_size') + ' m²';
-        document.getElementById('maxGarbageSize').textContent = max(garbage, 'garbage_size') + ' m²';
-        document.getElementById('garbageCount').textContent = garbage.length;
+        const avgP = avg(potholeSizes);
+        const maxP = max(potholeSizes);
+        const avgG = avg(garbageSizes);
+        const maxG = max(garbageSizes);
+
+        document.getElementById('avgPotholeSize').textContent = `${avgP} m²`;
+        document.getElementById('maxPotholeSize').textContent = `${maxP} m²`;
+        document.getElementById('potholeCount').textContent = potholeSizes.length;
+
+        document.getElementById('avgGarbageSize').textContent = `${avgG} m²`;
+        document.getElementById('maxGarbageSize').textContent = `${maxG} m²`;
+        document.getElementById('garbageCount').textContent = garbageSizes.length;
+
+        // --- Chart (destroy & recreate to keep fresh) ---
+        const ctx = document.getElementById('aiChart').getContext('2d');
+        if (aiChart) aiChart.destroy();
+        aiChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Avg Pothole', 'Max Pothole', 'Avg Garbage', 'Max Garbage'],
+            datasets: [{
+              label: 'Size (m²)',
+              data: [Number(avgP), Number(maxP), Number(avgG), Number(maxG)],
+              backgroundColor: ['#0d6efd','#0b5ed7','#198754','#20c997'],
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              title: { display: true, text: 'AI Detected Sizes Overview' }
+            },
+            scales: { y: { beginAtZero: true } }
+          }
+        });
 
       } catch (err) {
-        console.error('Error loading statistics:', err);
+        console.error('Error loading stats:', err);
+        // leave UI as-is (it shows Loading... or zeros)
       }
     }
 
+    // load on DOM ready
     document.addEventListener('DOMContentLoaded', loadStatistics);
   </script>
 </body>
