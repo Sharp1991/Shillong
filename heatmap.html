@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road Conditions Heatmap</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a; 
+            color: white;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+        
+        /* Navigation */
+        .nav { text-align: center; margin: 15px 0; }
+        .nav a { 
+            color: white; 
+            margin: 0 15px; 
+            text-decoration: none; 
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .nav a:hover { background: rgba(255,255,255,0.2); }
+        .nav a.active { 
+            background: rgba(255,255,255,0.3); 
+            font-weight: bold;
+        }
+        
+        #map { height: calc(100vh - 180px); width: 100%; }
+        
+        .controls {
+            position: absolute; top: 180px; right: 20px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.95); padding: 15px;
+            border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            color: #333; min-width: 250px;
+        }
+        .control-group { margin-bottom: 15px; }
+        .control-group h3 { margin-bottom: 10px; color: #333; font-size: 1rem; }
+        .intensity-filter { display: flex; flex-direction: column; gap: 8px; }
+        .filter-option { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .color-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .intensity-1 { background: #28a745; } .intensity-2 { background: #ffc107; }
+        .intensity-3 { background: #fd7e14; } .intensity-4 { background: #dc3545; }
+        
+        .stats {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;
+        }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 1.2rem; font-weight: bold; color: #667eea; }
+        .stat-label { font-size: 0.8rem; color: #666; }
+        
+        .loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95); padding: 20px 30px;
+            border-radius: 10px; text-align: center; z-index: 1000; color: #333;
+        }
+        .last-update {
+            position: absolute; bottom: 20px; left: 20px;
+            background: rgba(0, 0, 0, 0.7); padding: 10px 15px;
+            border-radius: 8px; font-size: 0.9rem; z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛣️ Road Conditions Heatmap</h1>
+        <p>Visualizing pothole reports and road issues</p>
+        <div class="nav">
+            <a href="index.html">📱 Report Potholes</a>
+            <a href="heatmap.html" class="active">🗺️ View Heatmap</a>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <div class="controls">
+        <div class="control-group">
+            <h3>🚦 Filter by Severity</h3>
+            <div class="intensity-filter">
+                <label class="filter-option">
+                    <input type="checkbox" data-intensity="1" checked>
+                    <div class="color-dot intensity-1"></div>
+                    <span>Minor (Green)</span>
+                </label>
+                <label class="filter-option">
+                    <input type="checkbox" data-intensity="2" checked>
+                    <div class="color-dot intensity-2"></div>
+                    <span>Moderate (Yellow)</span>
+                </label>
+                <label class="filter-option">
+                    <input type="checkbox" data-intensity="3" checked>
+                    <div class="color-dot intensity-3"></div>
+                    <span>Severe (Orange)</span>
+                </label>
+                <label class="filter-option">
+                    <input type="checkbox" data-intensity="4" checked>
+                    <div class="color-dot intensity-4"></div>
+                    <span>Critical (Red)</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalReports">0</div>
+                <div class="stat-label">Total Reports</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="last30Days">0</div>
+                <div class="stat-label">Last 30 Days</div>
+            </div>
+        </div>
+
+        <button id="refreshBtn" style="width: 100%; padding: 10px; margin-top: 10px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            🔄 Refresh Data
+        </button>
+    </div>
+
+    <div class="last-update">
+        Last updated: <span id="lastUpdateTime">Loading...</span>
+    </div>
+
+    <div class="loading" id="loadingIndicator">
+        <div>🔄 Loading road data...</div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+    <script>
+        // Your existing Supabase credentials
+        const SUPABASE_URL = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co'
+        const SUPABASE_KEY = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK'
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+        
+        let map, allData = [], currentFilters = [1, 2, 3, 4]
+        
+        function initMap() {
+            map = L.map('map').setView([25.5788, 91.8933], 13)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map)
+        }
+        
+        async function loadData() {
+            showLoading(true)
+            try {
+                const { data, error } = await supabase
+                    .from('road_clicks')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                
+                if (error) throw error
+                
+                allData = data
+                updateStats(data)
+                createHeatmap(data)
+                showLoading(false)
+                
+            } catch (error) {
+                console.error('Error loading data:', error)
+                showLoading(false, 'Error loading data')
+            }
+        }
+        
+        function createHeatmap(data) {
+            // Remove existing heatmap
+            map.eachLayer(layer => {
+                if (layer instanceof L.HeatLayer) {
+                    map.removeLayer(layer)
+                }
+            })
+            
+            const filteredData = data.filter(item => currentFilters.includes(item.intensity))
+            const heatmapData = filteredData.map(item => [item.lat, item.lon, item.intensity])
+            
+            // Create custom heatmap using circles (since Leaflet.heat is not included)
+            filteredData.forEach(item => {
+                const color = getColorForIntensity(item.intensity)
+                const radius = getRadiusForIntensity(item.intensity)
+                
+                L.circle([item.lat, item.lon], {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.6,
+                    radius: radius
+                }).addTo(map)
+            })
+            
+            document.getElementById('lastUpdateTime').textContent = new Date().toLocaleString()
+        }
+        
+        function getColorForIntensity(intensity) {
+            switch(intensity) {
+                case 1: return '#28a745'
+                case 2: return '#ffc107' 
+                case 3: return '#fd7e14'
+                case 4: return '#dc3545'
+                default: return '#666'
+            }
+        }
+        
+        function getRadiusForIntensity(intensity) {
+            switch(intensity) {
+                case 1: return 20
+                case 2: return 30
+                case 3: return 45
+                case 4: return 60
+                default: return 25
+            }
+        }
+        
+        function updateStats(data) {
+            const total = data.length
+            const thirtyDaysAgo = new Date()
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+            
+            const recent = data.filter(item => new Date(item.created_at) > thirtyDaysAgo).length
+            
+            document.getElementById('totalReports').textContent = total
+            document.getElementById('last30Days').textContent = recent
+        }
+        
+        function showLoading(show, message = 'Loading road data...') {
+            const loading = document.getElementById('loadingIndicator')
+            loading.style.display = show ? 'block' : 'none'
+            if (show) loading.innerHTML = `<div>🔄 ${message}</div>`
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap()
+            loadData()
+            
+            document.querySelectorAll('.intensity-filter input').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const intensity = parseInt(this.dataset.intensity)
+                    if (this.checked) {
+                        if (!currentFilters.includes(intensity)) currentFilters.push(intensity)
+                    } else {
+                        currentFilters = currentFilters.filter(f => f !== intensity)
+                    }
+                    createHeatmap(allData)
+                })
+            })
+            
+            document.getElementById('refreshBtn').addEventListener('click', loadData)
+            setInterval(loadData, 120000)
+        })
+    </script>
+</body>
+</html>
