@@ -38,46 +38,113 @@
         
         #map { height: calc(100vh - 180px); width: 100%; }
         
-        .debug-panel {
-            position: absolute;
-            top: 180px;
-            left: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 15px;
-            border-radius: 10px;
-            max-width: 300px;
-            font-size: 12px;
-            border-left: 4px solid #dc3545;
-        }
-        
-        .debug-info {
-            margin: 5px 0;
-            font-family: monospace;
-        }
-        
-        .success { color: #28a745; }
-        .error { color: #dc3545; }
-        .warning { color: #ffc107; }
-        
         .controls {
             position: absolute; top: 180px; right: 20px; z-index: 1000;
             background: rgba(255, 255, 255, 0.95); padding: 15px;
             border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            color: #333; min-width: 250px;
+            color: #333; min-width: 280px;
+        }
+        
+        .control-group { margin-bottom: 15px; }
+        .control-group h3 { margin-bottom: 10px; color: #333; font-size: 1rem; }
+        
+        .heatmap-intensity {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .intensity-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
+        .heat-gradient {
+            width: 100%;
+            height: 20px;
+            background: linear-gradient(90deg, #00ff00, #ffff00, #ff8000, #ff0000);
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .gradient-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #666;
+            margin-top: -5px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
         }
         
         .loading {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.95); padding: 20px 30px;
-            border-radius: 10px; text-align: center; z-index: 1000; color: #333;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+            color: #333;
+        }
+        
+        .map-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 15px;
+            border-radius: 8px;
+            z-index: 1000;
+            font-size: 12px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 10px;
+            margin-right: 8px;
+            border-radius: 2px;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🛣️ Road Conditions Heatmap</h1>
-        <p>Visualizing pothole reports and road issues</p>
+        <p>Density-based visualization - red areas have more reports</p>
         <div class="nav">
             <a href="index.html">📱 Report Potholes</a>
             <a href="heatmap.html" class="active">🗺️ View Heatmap</a>
@@ -86,94 +153,105 @@
 
     <div id="map"></div>
 
-    <!-- Debug Panel - Shows what's happening -->
-    <div class="debug-panel" id="debugPanel">
-        <strong>🔧 Debug Info:</strong>
-        <div class="debug-info" id="debugStatus">Initializing...</div>
-        <div class="debug-info" id="debugData">No data loaded</div>
-        <div class="debug-info" id="debugError">No errors</div>
+    <div class="controls">
+        <div class="control-group">
+            <h3>🔥 Heatmap Intensity</h3>
+            <div class="heat-gradient"></div>
+            <div class="gradient-labels">
+                <span>Low</span>
+                <span>Medium</span>
+                <span>High</span>
+                <span>Critical</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>📊 Heatmap Settings</h3>
+            <div style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                <div>Radius: <span id="radiusValue">25</span>px</div>
+                <input type="range" id="radiusSlider" min="10" max="50" value="25" style="width: 100%;">
+            </div>
+            <div style="font-size: 12px; color: #666;">
+                <div>Blur: <span id="blurValue">15</span>px</div>
+                <input type="range" id="blurSlider" min="5" max="30" value="15" style="width: 100%;">
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalReports">0</div>
+                <div class="stat-label">Total Reports</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="heatPoints">0</div>
+                <div class="stat-label">Heat Points</div>
+            </div>
+        </div>
+
+        <button id="refreshBtn" style="width: 100%; padding: 10px; margin-top: 10px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            🔄 Refresh Heatmap
+        </button>
     </div>
 
-    <div class="controls">
-        <button id="refreshBtn" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            🔄 Refresh Data
-        </button>
-        <div style="margin-top: 10px; font-size: 12px; color: #666;">
-            <div>Total Points: <span id="pointCount">0</span></div>
-            <div>Last Update: <span id="lastUpdate">Never</span></div>
+    <div class="map-legend">
+        <div style="margin-bottom: 5px; font-weight: bold;">Report Density</div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #00ff00;"></div>
+            <span>Few reports</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ffff00;"></div>
+            <span>Some reports</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ff8000;"></div>
+            <span>Many reports</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ff0000;"></div>
+            <span>Critical area</span>
         </div>
     </div>
 
     <div class="loading" id="loadingIndicator">
-        <div>🔄 Loading road data...</div>
+        <div>🔥 Generating heatmap...</div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
     
-    <!-- Use the same Supabase import as your working app -->
     <script type="module">
-        // Import Supabase the same way your working app does
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-        // Your Supabase credentials - same as working app
         const SUPABASE_URL = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co'
         const SUPABASE_KEY = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK'
         
-        // Debug elements
-        const debugStatus = document.getElementById('debugStatus')
-        const debugData = document.getElementById('debugData')
-        const debugError = document.getElementById('debugError')
-        const pointCount = document.getElementById('pointCount')
-        const lastUpdate = document.getElementById('lastUpdate')
         const loadingIndicator = document.getElementById('loadingIndicator')
+        const totalReports = document.getElementById('totalReports')
+        const heatPoints = document.getElementById('heatPoints')
+        const radiusValue = document.getElementById('radiusValue')
+        const blurValue = document.getElementById('blurValue')
+        const radiusSlider = document.getElementById('radiusSlider')
+        const blurSlider = document.getElementById('blurSlider')
 
         let map
         let supabase
-        let markers = []
+        let heatLayer
+        let currentRadius = 25
+        let currentBlur = 15
 
-        // Update debug info
-        function updateDebug(status, data, error = '') {
-            debugStatus.textContent = status
-            debugData.textContent = data
-            debugError.textContent = error
-            
-            if (error) {
-                debugError.className = 'debug-info error'
-            } else {
-                debugError.className = 'debug-info success'
-            }
-        }
-
-        // Initialize everything
         async function initializeApp() {
-            updateDebug('Initializing Supabase...', 'Connecting to database')
+            loadingIndicator.style.display = 'block'
             
             try {
-                // Initialize Supabase same as your working app
                 supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
-                updateDebug('Supabase initialized', 'Testing connection...')
-                
-                // Test connection
-                const { data, error } = await supabase
-                    .from('road_clicks')
-                    .select('count')
-                    .limit(1)
-                
-                if (error) {
-                    throw new Error(`Connection failed: ${error.message}`)
-                }
-                
-                updateDebug('✅ Connected to Supabase', 'Loading map...')
-                
-                // Initialize map
                 initMap()
-                
-                // Load data
-                await loadData()
+                await loadHeatmapData()
+                setupControls()
                 
             } catch (error) {
-                updateDebug('❌ Initialization failed', '', error.message)
-                loadingIndicator.style.display = 'none'
+                console.error('Initialization failed:', error)
+                loadingIndicator.innerHTML = '<div>❌ Failed to load heatmap</div>'
             }
         }
 
@@ -183,79 +261,99 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map)
-            
-            updateDebug('Map initialized', 'Ready to load data')
         }
 
-        async function loadData() {
+        async function loadHeatmapData() {
             loadingIndicator.style.display = 'block'
-            updateDebug('Loading data...', 'Fetching from road_clicks table')
             
             try {
-                // Clear existing markers
-                markers.forEach(marker => map.removeLayer(marker))
-                markers = []
-                
-                // Fetch data from your working table
+                // Fetch all data points
                 const { data, error } = await supabase
                     .from('road_clicks')
-                    .select('lat, lon, intensity, intensity_label, created_at')
+                    .select('lat, lon, intensity, created_at')
                     .order('created_at', { ascending: false })
                 
-                if (error) {
-                    throw new Error(`Database error: ${error.message}`)
-                }
-                
-                updateDebug(`✅ Data loaded`, `${data.length} records found`)
+                if (error) throw error
+
+                totalReports.textContent = data.length
                 
                 if (data.length === 0) {
-                    updateDebug('⚠️ No data', 'road_clicks table is empty')
-                    pointCount.textContent = '0'
-                } else {
-                    // Add markers to map
-                    data.forEach(item => {
-                        const color = getColorForIntensity(item.intensity)
-                        const marker = L.circleMarker([item.lat, item.lon], {
-                            color: color,
-                            fillColor: color,
-                            fillOpacity: 0.7,
-                            radius: 8
-                        }).addTo(map)
-                        
-                        marker.bindPopup(`
-                            <strong>${item.intensity_label}</strong><br>
-                            Intensity: ${item.intensity}/4<br>
-                            Date: ${new Date(item.created_at).toLocaleDateString()}
-                        `)
-                        
-                        markers.push(marker)
-                    })
-                    
-                    pointCount.textContent = data.length
-                    updateDebug('✅ Map updated', `Added ${data.length} markers`)
+                    loadingIndicator.innerHTML = '<div>📭 No data found</div>'
+                    return
                 }
+
+                // Convert to heatmap format: [lat, lng, intensity]
+                // Use intensity as weight (1-4) to make severe potholes "hotter"
+                const heatmapData = data.map(point => [
+                    point.lat,
+                    point.lon,
+                    point.intensity * 0.5  // Weight by severity
+                ])
+
+                heatPoints.textContent = heatmapData.length
                 
-                lastUpdate.textContent = new Date().toLocaleTimeString()
+                // Remove existing heat layer
+                if (heatLayer) {
+                    map.removeLayer(heatLayer)
+                }
+
+                // Create new heat layer with current settings
+                heatLayer = L.heatLayer(heatmapData, {
+                    radius: currentRadius,
+                    blur: currentBlur,
+                    maxZoom: 17,
+                    gradient: {
+                        0.2: '#00ff00',  // Green - low density
+                        0.4: '#ffff00',  // Yellow - medium density  
+                        0.6: '#ff8000',  // Orange - high density
+                        0.8: '#ff0000'   // Red - critical density
+                    }
+                }).addTo(map)
+
+                loadingIndicator.style.display = 'none'
                 
             } catch (error) {
-                updateDebug('❌ Load failed', '', error.message)
-            } finally {
-                loadingIndicator.style.display = 'none'
+                console.error('Heatmap data load failed:', error)
+                loadingIndicator.innerHTML = '<div>❌ Failed to load data</div>'
             }
         }
 
-        function getColorForIntensity(intensity) {
-            switch(intensity) {
-                case 1: return '#28a745' // Green
-                case 2: return '#ffc107' // Yellow
-                case 3: return '#fd7e14' // Orange
-                case 4: return '#dc3545' // Red
-                default: return '#666'
-            }
+        function setupControls() {
+            // Radius slider
+            radiusSlider.addEventListener('input', function() {
+                currentRadius = parseInt(this.value)
+                radiusValue.textContent = currentRadius
+                updateHeatmap()
+            })
+
+            // Blur slider
+            blurSlider.addEventListener('input', function() {
+                currentBlur = parseInt(this.value)
+                blurValue.textContent = currentBlur
+                updateHeatmap()
+            })
+
+            // Refresh button
+            document.getElementById('refreshBtn').addEventListener('click', loadHeatmapData)
         }
 
-        // Event listeners
-        document.getElementById('refreshBtn').addEventListener('click', loadData)
+        function updateHeatmap() {
+            if (heatLayer && heatLayer._latlngs) {
+                // Remove and recreate heatmap with new settings
+                map.removeLayer(heatLayer)
+                heatLayer = L.heatLayer(heatLayer._latlngs, {
+                    radius: currentRadius,
+                    blur: currentBlur,
+                    maxZoom: 17,
+                    gradient: {
+                        0.2: '#00ff00',
+                        0.4: '#ffff00', 
+                        0.6: '#ff8000',
+                        0.8: '#ff0000'
+                    }
+                }).addTo(map)
+            }
+        }
 
         // Start the app
         initializeApp()
